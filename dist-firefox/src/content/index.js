@@ -98,6 +98,7 @@
     }
 
     observeAssistantStart(callback) {
+      this.lastAssistantNode = this.findLatestAssistant();
       const observer = new MutationObserver(() => {
         const user = this.findLatestUserMessage();
         if (user) {
@@ -108,7 +109,7 @@
           this.lastAssistantNode = assistant;
           this.lastAssistantLength = 0;
           this.stableSince = Date.now();
-          callback();
+          callback({ node: assistant });
         }
       });
       observer.observe(document.documentElement, { childList: true, subtree: true });
@@ -283,7 +284,7 @@
       this.renderDock();
       this.adapter.observeUserSubmit((submission) => this.handleUserSubmit(submission));
       this.adapter.observePromptIntent(() => this.handlePromptIntent());
-      this.adapter.observeAssistantStart(() => {});
+      this.adapter.observeAssistantStart((detail) => this.handleAssistantStart(detail));
       this.adapter.observeAssistantComplete((detail) => this.handleAssistantComplete(detail));
       this.adapter.observeAssistantCopy((detail) => this.record("assistant_copy_detected", detail));
       this.adapter.observeSourceClick(() => {
@@ -384,6 +385,21 @@
       this.reflectionShown = false;
       this.schoolCheckShown = false;
       this.promptCount = Math.max(this.promptCount, 1);
+    }
+
+    handleAssistantStart({ node } = {}) {
+      this.refreshConversationState();
+      if (!this.sessionId || !this.isLearningActive() || this.awaitingAssistantResponse || this.assistantCompleted) return;
+      if (!this.attemptShown || this.attemptPromptOpen || this.learningGoalPromptOpen) return;
+      this.promptCount = Math.max(this.promptCount, 1);
+      this.awaitingAssistantResponse = true;
+      this.userMessageObservedForPrompt = true;
+      this.assistantNodeAtSubmit = null;
+      this.assistantCompleted = false;
+      this.evaluationShown = false;
+      this.verifyShown = false;
+      this.reflectionShown = false;
+      this.schoolCheckShown = false;
     }
 
     handleAssistantComplete({ node, sourcePresent }) {

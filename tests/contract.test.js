@@ -118,3 +118,13 @@ test("Compare waits for a real submitted user message and completed assistant re
   assert.match(content, /node && this\.assistantNodeAtSubmit && node === this\.assistantNodeAtSubmit/);
   assert.match(content, /if \(typeof perform === "function"\) \{[\s\S]*?this\.promptCount \+= 1/);
 });
+
+test("Compare recovers when ChatGPT send events are missed but a new assistant starts", () => {
+  const content = readFileSync(path.join(root, "src/content/index.js"), "utf8");
+  assert.match(content, /this\.lastAssistantNode = this\.findLatestAssistant\(\)/);
+  assert.match(content, /this\.adapter\.observeAssistantStart\(\(detail\) => this\.handleAssistantStart\(detail\)\)/);
+  assert.match(content, /handleAssistantStart\(\{ node \} = \{\}\)/);
+  assert.match(content, /if \(!this\.attemptShown \|\| this\.attemptPromptOpen \|\| this\.learningGoalPromptOpen\) return/);
+  assert.match(content, /this\.promptCount = Math\.max\(this\.promptCount, 1\)/);
+  assert.match(content, /this\.awaitingAssistantResponse = true/);
+});
