@@ -143,16 +143,28 @@ function renderMeasurement() {
 
   measurementGrid.innerHTML = metricCopy.map(([, key, title]) => {
     const model = MEASUREMENT_MODEL[key];
+    const rows = [
+      ["What raises this metric", model.numerator],
+      ["What it is measured against", model.denominator],
+      ["When it updates", model.whenMeasured],
+      ["What triggers the event", model.eventTrigger],
+      ["Privacy boundary", model.privacyBoundary],
+      ["What it cannot tell you", model.limitation]
+    ];
     return `
       <article class="card measurement-card">
         <h2>${title}</h2>
+        <p class="measurement-formula">
+          <span>Rate logic</span>
+          completed learning action / relevant opportunity
+        </p>
         <dl class="measurement-list">
-          <div><dt>Numerator</dt><dd>${model.numerator}</dd></div>
-          <div><dt>Denominator</dt><dd>${model.denominator}</dd></div>
-          <div><dt>When</dt><dd>${model.whenMeasured}</dd></div>
-          <div><dt>Trigger</dt><dd>${model.eventTrigger}</dd></div>
-          <div><dt>Privacy</dt><dd>${model.privacyBoundary}</dd></div>
-          <div><dt>Limit</dt><dd>${model.limitation}</dd></div>
+          ${rows.map(([label, value]) => `
+            <div>
+              <dt>${label}</dt>
+              <dd>${formatMeasurementValue(value)}</dd>
+            </div>
+          `).join("")}
         </dl>
       </article>
     `;
@@ -167,6 +179,11 @@ function renderMeasurement() {
       <p><strong>Burden rule:</strong> ${rule.burdenRule}</p>
     </article>
   `).join("");
+}
+
+function formatMeasurementValue(value) {
+  return String(value)
+    .replace(/\b[a-z][a-zA-Z0-9]*(?:_[a-zA-Z0-9]+)+\b/g, "<code>$&</code>");
 }
 
 function renderTrend() {

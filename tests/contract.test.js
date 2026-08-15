@@ -145,3 +145,13 @@ test("Create mode prioritizes authorship compare before source verification", ()
   const content = readFileSync(path.join(root, "src/content/index.js"), "utf8");
   assert.match(content, /const researchLike = mode === "research" \|\| \(mode !== "create" && Boolean\(sourcePresent\)\)/);
 });
+
+test("measurement tab uses learner-friendly labels while keeping audit events visible", () => {
+  const dashboard = readFileSync(path.join(root, "src/dashboard/Dashboard.js"), "utf8");
+  assert.equal(dashboard.includes("<dt>Numerator</dt>"), false);
+  assert.equal(dashboard.includes("<dt>Denominator</dt>"), false);
+  assert.match(dashboard, /What raises this metric/);
+  assert.match(dashboard, /What it is measured against/);
+  assert.match(dashboard, /Privacy boundary/);
+  assert.match(dashboard, /formatMeasurementValue/);
+});
