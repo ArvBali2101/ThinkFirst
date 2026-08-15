@@ -266,6 +266,8 @@
       this.lastAutoAt = 0;
       this.exchangesSinceAuto = 0;
       this.learningGoalSet = false;
+      this.learningGoalPromptOpen = false;
+      this.sessionStartPromptOffered = false;
       this.retrieveSuggested = false;
     }
 
@@ -288,11 +290,13 @@
       this.adapter.observeFollowupSubmit(() => this.record("followup_message_detected"));
       this.installInteractionTracker();
       this.installNavigationWatcher();
+      this.installSessionStartPrompt();
       chrome.storage.onChanged.addListener((changes, area) => {
         if (area === "local" && changes[STORAGE_SETTINGS]) {
           this.settings = { ...DEFAULT_SETTINGS, ...(changes[STORAGE_SETTINGS].newValue || {}) };
           document.documentElement.classList.toggle("tf-dyslexia-friendly", Boolean(this.settings.dyslexiaFriendly));
           this.renderDock();
+          this.installSessionStartPrompt();
         }
       });
     }
@@ -326,6 +330,12 @@
         return;
       }
 
+      if (this.learningGoalPromptOpen) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
+
       if (this.settings.attemptEnabled && !this.attemptShown && this.canAutoIntervene()) {
         event.preventDefault();
         event.stopImmediatePropagation();
@@ -348,7 +358,7 @@
     async handlePromptIntent() {
       this.refreshConversationState();
       if (!this.isLearningActive()) return;
-      if (!this.settings.attemptEnabled || this.attemptShown || this.attemptPromptOpen || !this.canAutoIntervene()) return;
+      if (!this.settings.attemptEnabled || this.attemptShown || this.attemptPromptOpen || this.learningGoalPromptOpen || !this.canAutoIntervene()) return;
       this.ensureSession();
       this.attemptShown = true;
       this.fallbackAttemptShown = true;
@@ -485,6 +495,8 @@
       this.lastAutoAt = 0;
       this.exchangesSinceAuto = 0;
       this.learningGoalSet = false;
+      this.learningGoalPromptOpen = false;
+      this.sessionStartPromptOffered = false;
       this.retrieveSuggested = false;
       document.querySelector(".tf-sidepanel")?.remove();
     }
@@ -832,7 +844,9 @@
 
     showLearningGoal() {
       if (this.learningGoalSet || !this.isLearningActive()) return;
+      this.ensureSession();
       this.learningGoalSet = true;
+      this.learningGoalPromptOpen = true;
       let goalType = this.getMode() === "research" ? "evaluate_evidence" : this.getMode() === "create" ? "create" : "understand";
       const modal = createModal({
         title: "What should this session help you do?",
@@ -853,11 +867,13 @@
         why: "ThinkFirst uses the goal category to choose better tools later. The typed wording is not saved.",
         feedbackType: "goal",
         onPrimary: async ({ close }) => {
+          this.learningGoalPromptOpen = false;
           await this.record("learning_goal_set", { goalType });
           close();
           this.renderDock();
         },
         onSecondary: async ({ close }) => {
+          this.learningGoalPromptOpen = false;
           await this.record("learning_goal_skipped");
           close();
         }
@@ -1042,6 +1058,29 @@
       window.addEventListener("popstate", check);
       window.addEventListener("hashchange", check);
       setInterval(check, 1500);
+    }
+
+    installSessionStartPrompt() {
+      const tryShow = () => {
+        this.refreshConversationState();
+        if (this.sessionStartPromptOffered || this.attemptShown || this.attemptPromptOpen || this.learningGoalPromptOpen) return true;
+        if (!this.isLearningActive() || !this.adapter.findPromptRoot()) return false;
+        if (this.adapter.findLatestUserMessage() || this.adapter.findLatestAssistant()) return true;
+        this.sessionStartPromptOffered = true;
+        this.ensureSession();
+        this.attemptShown = true;
+        this.fallbackAttemptShown = true;
+        this.record("attempt_prompt_shown");
+        this.markAutoIntervention();
+        this.showAttemptFirst(null, { submitAfter: false });
+        return true;
+      };
+      setTimeout(tryShow, 900);
+      let attempts = 0;
+      const timer = setInterval(() => {
+        attempts += 1;
+        if (tryShow() || attempts > 30) clearInterval(timer);
+      }, 700);
     }
 
     renderDock() {

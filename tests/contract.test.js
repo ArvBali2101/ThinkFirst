@@ -97,3 +97,15 @@ test("first attempt can trigger from composer input before ChatGPT send", () => 
   assert.match(content, /this\.showAttemptFirst\(null, \{ submitAfter: false \}\)/);
   assert.match(content, /Done - I'll ask AI/);
 });
+
+test("fresh ChatGPT sessions show the full Attempt First prompt before the first exchange", () => {
+  const content = readFileSync(path.join(root, "src/content/index.js"), "utf8");
+  assert.match(content, /installSessionStartPrompt\(\)/);
+  assert.match(content, /this\.installSessionStartPrompt\(\)/);
+  assert.match(content, /this\.showAttemptFirst\(null, \{ submitAfter: false \}\)/);
+  assert.match(content, /this\.record\("attempt_prompt_shown"\)/);
+  assert.match(content, /Before AI answers - what do you think\?/);
+  assert.match(content, /this\.ensureSession\(\)/);
+  const startupHook = content.match(/installSessionStartPrompt\(\) \{[\s\S]*?\n    \}/)?.[0] || "";
+  assert.equal(startupHook.includes("showLearningGoal"), false);
+});
