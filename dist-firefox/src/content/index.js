@@ -253,6 +253,8 @@
       this.reflectionShown = false;
       this.schoolCheckShown = false;
       this.assistantCompleted = false;
+      this.awaitingAssistantResponse = false;
+      this.userMessageObservedForPrompt = false;
       this.responseInteracted = false;
       this.submitBypassUntil = 0;
       this.onFollowup = null;
@@ -348,6 +350,8 @@
       }
 
       this.promptCount += 1;
+      this.awaitingAssistantResponse = true;
+      this.userMessageObservedForPrompt = false;
       this.assistantCompleted = false;
       this.evaluationShown = false;
       this.verifyShown = false;
@@ -372,6 +376,7 @@
       if (!this.isLearningActive() || this.lastUserMessageNode === userNode) return;
       this.lastUserMessageNode = userNode;
       this.ensureSession();
+      this.userMessageObservedForPrompt = true;
       this.evaluationShown = false;
       this.verifyShown = false;
       this.reflectionShown = false;
@@ -381,6 +386,8 @@
 
     handleAssistantComplete({ sourcePresent }) {
       if (!this.sessionId || !this.isLearningActive() || this.assistantCompleted) return;
+      if (!this.awaitingAssistantResponse || !this.userMessageObservedForPrompt || this.promptCount < 1) return;
+      this.awaitingAssistantResponse = false;
       this.assistantCompleted = true;
       this.responseInteracted = false;
       this.exchangesSinceAuto += 1;
@@ -484,6 +491,8 @@
       this.verifyShown = false;
       this.reflectionShown = false;
       this.assistantCompleted = false;
+      this.awaitingAssistantResponse = false;
+      this.userMessageObservedForPrompt = false;
       this.responseInteracted = false;
       this.fallbackAttemptShown = false;
       this.currentConversationKey = this.getConversationKey();
@@ -530,9 +539,11 @@
     }
 
     continueToAI(perform) {
-      this.promptCount += 1;
-      this.assistantCompleted = false;
       if (typeof perform === "function") {
+        this.promptCount += 1;
+        this.awaitingAssistantResponse = true;
+        this.userMessageObservedForPrompt = false;
+        this.assistantCompleted = false;
         perform();
       } else {
         this.adapter.focusPrompt();
