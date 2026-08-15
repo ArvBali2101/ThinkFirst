@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ThinkFirst</title>
+    <link rel="stylesheet" href="../shared/app.css">
+    <link rel="stylesheet" href="./popup.css">
+  </head>
+  <body class="compact">
+    <header class="topbar">
+      <div class="brand"><span class="mark" aria-hidden="true"></span><span>ThinkFirst</span></div>
+    </header>
+    <main>
+      <section class="panel popup-status">
+        <div class="muted" id="provider">ChatGPT supported</div>
+        <strong id="mode">Quick Mode active</strong>
+      </section>
+      <section class="panel">
+        <label class="popup-mode">
+          <span>What are you trying to do?</span>
+          <select id="modeSelect">
+            <option value="quick">Quick</option>
+            <option value="learn">Learn</option>
+            <option value="research">Research</option>
+            <option value="create">Create</option>
+            <option value="school">School / Assignment</option>
+          </select>
+        </label>
+        <div id="modeCards" class="popup-mode-cards" aria-label="Mode choices"></div>
+        <label class="switch-row">
+          <span>Pause ThinkFirst on this site</span>
+          <span class="switch"><input id="pauseSite" type="checkbox"><span class="slider"></span></span>
+        </label>
+      </section>
+      <div class="popup-actions">
+        <button id="dashboard" type="button">Open My Learning Habits</button>
+        <button id="settings" class="secondary" type="button">Privacy & Settings</button>
+      </div>
+      <footer class="fineprint">No conversation content stored</footer>
+    </main>
+    <script type="module" src="./Popup.js"></script>
+  </body>
+</html>

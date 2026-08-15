@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ThinkFirst setup</title>
+    <link rel="stylesheet" href="../shared/app.css">
+  </head>
+  <body class="studio-body">
+    <main class="studio-onboarding">
+      <header class="studio-nav">
+        <div class="studio-brand">
+          <span class="studio-mark" aria-hidden="true">✣</span>
+          <span class="studio-wordmark">ThinkFirst</span>
+          <span class="studio-pill">Private<br>Studio</span>
+        </div>
+        <div class="studio-privacy">▣ Your thinking stays yours</div>
+        <button id="sessionTop" class="studio-ghost" type="button">Open a session <span>›</span></button>
+      </header>
+
+      <section class="studio-hero">
+        <div class="studio-copy">
+          <div class="studio-kicker"><span></span>A thinking companion for the age of AI</div>
+          <h1>Make AI<br><em>make you<br>sharper.</em></h1>
+          <p>ThinkFirst sits between you and the answer. A private space to make a first attempt, question what comes back, and leave with more of your own mind intact.</p>
+          <div class="studio-cta-row">
+            <button id="begin" class="studio-primary" type="button">Begin with a question <span>→</span></button>
+            <span class="studio-meta">4 movements · 1 honest loop</span>
+          </div>
+        </div>
+        <div class="studio-preview" aria-hidden="true">
+          <article class="studio-card">
+            <div class="studio-card-top">
+              <span>Today's<br>Studio</span>
+              <span>01 / 04</span>
+            </div>
+            <div class="studio-stage"><i></i> Generate · Your turn first</div>
+            <blockquote>“What do I already think about this?”</blockquote>
+            <div class="studio-rule"></div>
+            <p>Take 90 seconds. No polish needed.</p>
+            <span class="studio-help">?</span>
+          </article>
+          <div class="studio-signal"><small>Signal</small> protect the pause</div>
+        </div>
+      </section>
+
+      <section class="studio-doorway" id="doorway" aria-live="polite">
+        <div>
+          <div class="studio-section-label">Choose your doorway</div>
+          <h2>What are you trying to do?</h2>
+        </div>
+        <p>The mode changes the kind of help you receive, never the amount of agency you keep.</p>
+        <div id="screen"></div>
+      </section>
+    </main>
+    <script type="module" src="./Onboarding.js"></script>
+  </body>
+</html>

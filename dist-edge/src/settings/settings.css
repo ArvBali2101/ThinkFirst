@@ -1,0 +1,19 @@
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+select {
+  min-height: 38px;
+  min-width: 140px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 10px;
+  background: #ffffff;
+  color: var(--ink);
+}
+
+.privacy-actions {
+  margin-top: 14px;
+}

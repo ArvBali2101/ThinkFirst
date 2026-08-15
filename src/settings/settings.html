@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ThinkFirst Privacy & Settings</title>
+    <link rel="stylesheet" href="../shared/app.css">
+    <link rel="stylesheet" href="./settings.css">
+  </head>
+  <body>
+    <main class="page">
+      <header class="topbar">
+        <div>
+          <div class="brand"><span class="mark" aria-hidden="true"></span><span>ThinkFirst</span></div>
+          <h1>Privacy & Settings</h1>
+          <p>ThinkFirst adds a private learning layer to the AI tools you already use.</p>
+        </div>
+        <button id="dashboard" class="secondary" type="button">My Learning Habits</button>
+      </header>
+
+      <section class="settings-grid">
+        <article class="panel">
+          <h2>Mode</h2>
+          <label class="setting-row">
+            <span>Default mode</span>
+            <select id="mode">
+              <option value="quick">Quick</option>
+              <option value="learn">Learn</option>
+              <option value="research">Research</option>
+              <option value="create">Create</option>
+              <option value="school">School / Assignment</option>
+            </select>
+          </label>
+        </article>
+
+        <article class="panel">
+          <h2>Interventions</h2>
+          <label class="setting-row"><span>Attempt First</span><span class="switch"><input id="attemptEnabled" type="checkbox"><span class="slider"></span></span></label>
+          <label class="setting-row"><span>Ask before every message (legacy)</span><span class="switch"><input id="askEveryPrompt" type="checkbox"><span class="slider"></span></span></label>
+          <label class="setting-row"><span>Compare</span><span class="switch"><input id="evaluateEnabled" type="checkbox"><span class="slider"></span></span></label>
+          <label class="setting-row"><span>Verify</span><span class="switch"><input id="verifyEnabled" type="checkbox"><span class="slider"></span></span></label>
+          <label class="setting-row"><span>Reflect</span><span class="switch"><input id="reflectEnabled" type="checkbox"><span class="slider"></span></span></label>
+          <label class="setting-row"><span>Commitment Mode</span><span class="switch"><input id="commitmentMode" type="checkbox"><span class="slider"></span></span></label>
+          <p class="fineprint">Commitment Mode is voluntary. Attempt First becomes required while it is on.</p>
+        </article>
+
+        <article class="panel">
+          <h2>Frequency</h2>
+          <label class="setting-row">
+            <span>Prompt frequency</span>
+            <select id="intensity">
+              <option value="light">Light</option>
+              <option value="standard">Standard</option>
+              <option value="strong">Strong</option>
+            </select>
+          </label>
+          <label class="setting-row">
+            <span>Verification level</span>
+            <select id="verificationLevel">
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+          </label>
+          <label class="setting-row">
+            <span>Prompt complexity</span>
+            <select id="promptComplexity">
+              <option value="simple">Simple</option>
+              <option value="standard">Standard</option>
+              <option value="advanced">Advanced</option>
+            </select>
+          </label>
+          <label class="setting-row">
+            <span>Automatic prompts per session</span>
+            <select id="automaticInterventionBudget">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </label>
+          <label class="setting-row">
+            <span>Cooldown after automatic prompt</span>
+            <select id="cooldownMinutes">
+              <option value="3">3 minutes</option>
+              <option value="5">5 minutes</option>
+              <option value="8">8 minutes</option>
+            </select>
+          </label>
+          <p class="fineprint">Default behavior is sparse: Generate, one post-answer nudge, then a later checkpoint. School and Research modes may use stronger process checks.</p>
+        </article>
+
+        <article class="panel">
+          <h2>Privacy</h2>
+          <label class="setting-row">
+            <span>ThinkFirst Understanding</span>
+            <select id="understandingMode">
+              <option value="maximum-privacy">Maximum Privacy</option>
+              <option value="local-context">Local Context</option>
+              <option value="on-device-intelligence">On-device Intelligence</option>
+            </select>
+          </label>
+          <label class="setting-row"><span>Disable all local history</span><span class="switch"><input id="historyEnabled" type="checkbox"><span class="slider"></span></span></label>
+          <label class="setting-row"><span>Dyslexia-friendly display</span><span class="switch"><input id="dyslexiaFriendly" type="checkbox"><span class="slider"></span></span></label>
+          <div class="actions privacy-actions">
+            <button id="export" class="secondary" type="button">Export aggregates</button>
+            <button id="clear" class="danger" type="button">Clear all data</button>
+          </div>
+          <p class="fineprint">ThinkFirst does not persist or transmit prompts, AI responses, attempt text, reflection text, screenshots, or clipboard contents.</p>
+        </article>
+
+        <article class="panel">
+          <h2>Site Permissions</h2>
+          <table class="privacy-table">
+            <tbody>
+              <tr><td>ChatGPT</td><td>Supported</td></tr>
+              <tr><td>Gemini</td><td>Adapter planned</td></tr>
+              <tr><td>Claude</td><td>Adapter planned</td></tr>
+              <tr><td>Perplexity</td><td>Adapter planned</td></tr>
+            </tbody>
+          </table>
+        </article>
+      </section>
+      <p id="status" class="fineprint" aria-live="polite"></p>
+    </main>
+    <script type="module" src="./Settings.js"></script>
+  </body>
+</html>

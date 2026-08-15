@@ -1,0 +1,125 @@
+{
+  "ranAt": "2026-08-14T08:11:57.394Z",
+  "liveBrowsers": [
+    {
+      "browser": "Brave",
+      "version": "Chrome/151.0.7922.137",
+      "extensionId": "nkcfalddbidngnfhajdbdjfmmojcpdcm",
+      "chatBefore": {
+        "pill": true,
+        "pillText": "⚡\nThinkFirst\nQuick",
+        "title": "Just a moment..."
+      },
+      "chatAfter": {
+        "sidepanel": true,
+        "tools": [
+          "Test me",
+          "Verify this",
+          "School check",
+          "Challenge AI",
+          "Compare",
+          "What am I unsure about?",
+          "Explain it myself",
+          "Finish learning"
+        ]
+      },
+      "pages": {
+        "dashboard": {
+          "ok": true,
+          "hasMeasurement": true,
+          "hasSchool": true
+        },
+        "settings": {
+          "ok": true,
+          "hasSchool": true
+        },
+        "onboarding": {
+          "ok": true,
+          "hasSchool": true
+        },
+        "popup": {
+          "ok": true,
+          "hasSchool": true
+        }
+      },
+      "deletePilot": {
+        "pilotCleared": true,
+        "status": "All local ThinkFirst data deleted."
+      },
+      "schoolSave": {
+        "storedMode": "school",
+        "hasSchoolOption": true
+      },
+      "stderrNoise": [
+        "[22228:9924:0814/174125.252:ERROR:mojo\\public\\cpp\\bindings\\lib\\interface_endpoint_client.cc:748] Message 2 rejected by interface blink.mojom.Widget"
+      ]
+    },
+    {
+      "browser": "Edge",
+      "version": "Edg/151.0.4129.78",
+      "extensionId": "ddagnhjnilbjcpmnghknaifgnkclphbl",
+      "chatBefore": {
+        "pill": true,
+        "pillText": "⚡\nThinkFirst\nQuick",
+        "title": "Just a moment..."
+      },
+      "chatAfter": {
+        "sidepanel": true,
+        "tools": [
+          "Test me",
+          "Verify this",
+          "School check",
+          "Challenge AI",
+          "Compare",
+          "What am I unsure about?",
+          "Explain it myself",
+          "Finish learning"
+        ]
+      },
+      "pages": {
+        "dashboard": {
+          "ok": true,
+          "hasMeasurement": true,
+          "hasSchool": true
+        },
+        "settings": {
+          "ok": true,
+          "hasSchool": true
+        },
+        "onboarding": {
+          "ok": true,
+          "hasSchool": true
+        },
+        "popup": {
+          "ok": true,
+          "hasSchool": true
+        }
+      },
+      "deletePilot": {
+        "pilotCleared": true,
+        "status": "All local ThinkFirst data deleted."
+      },
+      "schoolSave": {
+        "storedMode": "school",
+        "hasSchoolOption": true
+      },
+      "stderrNoise": [
+        "[12844:21284:0814/174141.726:ERROR:mojo\\public\\cpp\\bindings\\lib\\interface_endpoint_client.cc:748] Message 2 rejected by interface blink.mojom.Widget",
+        "[12844:21284:0814/174142.740:ERROR:chrome\\browser\\task_manager\\providers\\fallback_task_provider.cc:126] Every renderer should have at least one task provided by a primary task provider. If a \"Renderer\" fallback task is shown, it is a bug. If you have repro steps, please file a new bug and tag it as a dependency of crbug.com/40528867."
+      ]
+    }
+  ],
+  "chromeLiveBlocked": "Local Chrome did not load --load-extension in temporary profiles; build is still Chromium-compatible and Brave live-loaded dist/.",
+  "chromeBuild": {
+    "hasServiceWorker": true,
+    "permissions": [
+      "storage"
+    ]
+  },
+  "firefoxBuildOnly": {
+    "installed": false,
+    "hasBackgroundScripts": true,
+    "hasGeckoId": true
+  },
+  "note": "Prior run passed live interactions. School presence for dashboard/onboarding is covered by source/tests because hidden tabs are not included in headless innerText; settings/popup/sidepanel live checks confirmed School UI."
+}

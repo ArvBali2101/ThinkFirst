@@ -1,0 +1,58 @@
+{
+  "manifest_version": 3,
+  "name": "ThinkFirst",
+  "description": "A private learning layer for ChatGPT: Generate, Evaluate, Verify, Reflect.",
+  "version": "0.1.0",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*"
+  ],
+  "background": {
+    "scripts": [
+      "src/background/serviceWorker.js"
+    ],
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "ThinkFirst"
+  },
+  "options_page": "src/settings/settings.html",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*"
+      ],
+      "js": [
+        "src/content/index.js"
+      ],
+      "css": [
+        "src/content/content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/dashboard/dashboard.html",
+        "src/onboarding/onboarding.html",
+        "src/settings/settings.html"
+      ],
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*"
+      ]
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "thinkfirst@local",
+      "strict_min_version": "121.0"
+    }
+  }
+}

@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>My AI Learning Habits</title>
+    <link rel="stylesheet" href="../shared/app.css">
+    <link rel="stylesheet" href="./dashboard.css">
+  </head>
+  <body>
+    <main class="page">
+      <header class="topbar">
+        <div>
+          <div class="brand"><span class="mark" aria-hidden="true"></span><span>ThinkFirst</span></div>
+          <h1>My AI Learning Habits</h1>
+          <p>These metrics reflect how you interact with AI in Learning Mode. They do not measure intelligence or critical-thinking ability.</p>
+        </div>
+        <button id="openSettings" class="secondary" type="button">Privacy & Settings</button>
+      </header>
+
+      <nav class="tabs" aria-label="Dashboard sections">
+        <button class="tab" data-tab="today" aria-selected="true" type="button">Today</button>
+        <button class="tab" data-tab="habits" aria-selected="false" type="button">Habits</button>
+        <button class="tab" data-tab="insights" aria-selected="false" type="button">Insights</button>
+        <button class="tab" data-tab="evidence" aria-selected="false" type="button">Evidence</button>
+        <button class="tab" data-tab="measurement" aria-selected="false" type="button">Measurement</button>
+        <button class="tab" data-tab="privacy" aria-selected="false" type="button">Privacy</button>
+        <button class="tab" data-tab="framework" aria-selected="false" type="button">Framework</button>
+        <button class="tab" data-tab="pilot" aria-selected="false" type="button">Pilot</button>
+      </nav>
+
+      <section id="today" class="tab-panel">
+        <section class="panel">
+          <h2>Today</h2>
+          <div id="todayGrid" class="metric-grid"></div>
+        </section>
+        <section class="panel">
+          <h2>Continue Learning</h2>
+          <p id="continueLearning">No locally saved retrieval cards yet. Finish Learning can help you create your own recall prompts later.</p>
+        </section>
+      </section>
+
+      <section id="habits" class="tab-panel hidden">
+        <div id="metricGrid" class="metric-grid"></div>
+        <section class="panel">
+          <h2>Last 14 Days</h2>
+          <div id="trendChart" class="trend" role="img" aria-label="Attempt, reflection, and verification activity over time"></div>
+        </section>
+      </section>
+
+      <section id="insights" class="tab-panel hidden">
+        <section class="panel">
+          <h2>Adaptive Guidance</h2>
+          <div class="adaptive-level" id="adaptiveLevel"></div>
+          <ul id="insightsList" class="insight-list"></ul>
+        </section>
+        <section class="panel">
+          <h2>Intervention Effectiveness</h2>
+          <div id="effectivenessGrid" class="metric-grid"></div>
+          <p class="fineprint">You and ThinkFirst evaluate whether ThinkFirst is helping. These are product-timing signals, not judgments about you.</p>
+        </section>
+      </section>
+
+      <section id="evidence" class="tab-panel hidden">
+        <section class="panel">
+          <h2>Research Grounding</h2>
+          <p>ThinkFirst interprets metrics as observable habits, not as grades. The research picture is mixed: structured AI use can support learning, while passive or unstructured reliance can increase cognitive offloading.</p>
+        </section>
+        <div id="researchCards" class="metric-grid"></div>
+        <section class="panel">
+          <h2>Sources Used</h2>
+          <ul id="researchSources" class="research-source-list"></ul>
+          <p class="fineprint">These sources justify the design logic. They do not let ThinkFirst diagnose learning, intelligence, or critical-thinking ability from browser metadata.</p>
+        </section>
+      </section>
+
+      <section id="measurement" class="tab-panel hidden">
+        <section class="panel">
+          <h2>How Metrics Are Measured</h2>
+          <p>Each percentage is an event ratio from local browser metadata. ThinkFirst stores whether a learning action happened, never the prompt, AI answer, source URL, clipboard text, attempt text, or reflection text.</p>
+        </section>
+        <div id="measurementGrid" class="metric-grid"></div>
+        <section class="panel">
+          <h2>How Prompt Timing Works</h2>
+          <p>ThinkFirst uses decision points and burden rules. It prompts when a learning move is useful and tries to back off when timing is poor.</p>
+          <div id="promptRules" class="metric-grid"></div>
+        </section>
+      </section>
+
+      <section id="privacy" class="tab-panel hidden">
+        <section class="panel">
+          <h2>Privacy</h2>
+          <p>Your conversation is not our data.</p>
+          <table class="privacy-table"><tbody id="privacyRows"></tbody></table>
+          <div class="actions privacy-actions">
+            <button id="viewData" class="secondary" type="button">View locally stored data</button>
+            <button id="exportData" class="secondary" type="button">Export aggregate metrics</button>
+            <button id="deleteData" class="danger" type="button">Delete all ThinkFirst data</button>
+          </div>
+          <h2>Privacy Inspector</h2>
+          <div id="eventTimeline" class="event-timeline"></div>
+          <pre id="localData" class="local-data hidden"></pre>
+        </section>
+      </section>
+
+      <section id="framework" class="tab-panel hidden">
+        <section class="panel framework-panel">
+          <h2>GEVR Framework</h2>
+          <p>ThinkFirst is built around Generate, Evaluate, Verify, Reflect, surrounded by human agency.</p>
+          <div class="framework-loop" aria-label="Generate Evaluate Verify Reflect">
+            <span>Generate</span><span>Evaluate</span><span>Verify</span><span>Reflect</span>
+          </div>
+          <p class="fineprint">AI supports the cycle rather than replacing it.</p>
+        </section>
+        <section class="metric-grid">
+          <article class="card"><h2>Quick</h2><p>I need an answer efficiently. Minimal friction and no session metrics.</p></article>
+          <article class="card"><h2>Learn</h2><p>Attempt First, comparison, retrieval, and balanced verification.</p></article>
+          <article class="card"><h2>Research</h2><p>Verification-heavy Claim -> Source -> Support -> Lateral check -> Judgment.</p></article>
+          <article class="card"><h2>Create</h2><p>Preserves authorship, intent, evaluation, and reflection during writing or brainstorming.</p></article>
+          <article class="card"><h2>School</h2><p>Assignment/exam process checks: allowed use, first attempt, source inspection, and what remains your own.</p></article>
+        </section>
+        <section class="panel">
+          <h2>UNESCO Roadmap</h2>
+          <div class="roadmap-grid">
+            <div><strong>Prototype now</strong><p>ChatGPT adapter, local GEVR interventions, adaptive policy, privacy inspector.</p></div>
+            <div><strong>Next</strong><p>Gemini, Claude, Perplexity adapters, multilingual UI, richer accessibility options.</p></div>
+            <div><strong>Future</strong><p>Optional Education Mode, research studies, aggregate-only teacher/research exports.</p></div>
+          </div>
+        </section>
+        <section class="panel">
+          <h2>ThinkFirst MIL Toolkit</h2>
+          <div class="roadmap-grid">
+            <div><strong>Generate</strong><p>What do I think before AI enters?</p></div>
+            <div><strong>Evaluate</strong><p>What did AI change, add, correct, or obscure?</p></div>
+            <div><strong>Verify</strong><p>What evidence supports the claim, and who produced it?</p></div>
+            <div><strong>Reflect</strong><p>What can I explain without looking back?</p></div>
+          </div>
+        </section>
+      </section>
+
+      <section id="pilot" class="tab-panel hidden">
+        <section class="panel">
+          <h2>Student Pilot Survey</h2>
+          <p>This local survey does not submit ChatGPT conversations or AI answers.</p>
+          <form id="pilotForm" class="pilot-form">
+            <label>What do you study?<input name="study" type="text"></label>
+            <label>Did ThinkFirst make you pause before relying on the AI answer?
+              <select name="pause">
+                <option>Yes</option>
+                <option>Somewhat</option>
+                <option>No</option>
+              </select>
+            </label>
+            <label>Which intervention was most useful?
+              <select name="useful">
+                <option>Attempt</option>
+                <option>Evaluate</option>
+                <option>Verify</option>
+                <option>Reflect</option>
+              </select>
+            </label>
+            <label>Which intervention was most annoying?<input name="annoying" type="text"></label>
+            <label>Would you voluntarily keep using ThinkFirst?
+              <select name="keep">
+                <option>Yes</option>
+                <option>Maybe</option>
+                <option>No</option>
+              </select>
+            </label>
+            <label>One thing you would change.<textarea name="change"></textarea></label>
+            <div class="actions">
+              <button type="submit">Save locally</button>
+              <button id="clearPilot" class="secondary" type="button">Clear survey</button>
+            </div>
+          </form>
+          <p id="pilotStatus" class="fineprint"></p>
+        </section>
+      </section>
+    </main>
+    <script type="module" src="./Dashboard.js"></script>
+  </body>
+</html>
