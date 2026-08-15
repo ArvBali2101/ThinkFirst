@@ -518,8 +518,8 @@
       this.attemptPromptOpen = true;
       const mode = this.getMode();
       const copy = getAttemptCopy(mode);
-      let readiness = "partial";
-      let unfamiliar = "not_sure";
+      let readiness = "";
+      let unfamiliar = "";
       let goalType = mode === "research" ? "evaluate_evidence" : mode === "create" ? "create" : mode === "school" ? "schoolwork" : "understand";
       let schoolTaskType = "assignment";
       let aiUseRule = "unknown";
@@ -566,7 +566,10 @@
           ], (value) => {
             readiness = value;
             modal.dispatchEvent(new CustomEvent("tf-refresh"));
-          }, "tf-readiness", readiness, mode === "school" ? "4. How much can you do before AI?" : "2. How much can you do before AI?"));
+          }, "tf-readiness", readiness, mode === "school" ? "4. How much can you do before AI?" : "2. How much can you do before AI?", {
+            allowNone: true,
+            toggleable: true
+          }));
           if (readiness === "no_idea") {
             fragment.append(buildChoiceList([
               ["terminology", "Terminology"],
@@ -576,7 +579,10 @@
               ["not_sure", "Not sure"]
             ], (value) => {
               unfamiliar = value;
-            }, "tf-unfamiliar", unfamiliar, mode === "school" ? "5. What feels unclear?" : "3. What feels unclear?"));
+            }, "tf-unfamiliar", unfamiliar, mode === "school" ? "5. What feels unclear?" : "3. What feels unclear?", {
+              allowNone: true,
+              toggleable: true
+            }));
           } else {
             fragment.append(buildPromptExamples(copy.examples));
           }
@@ -587,7 +593,7 @@
         requireText: false,
         footer: "Your attempt is not saved.",
         primary: "Continue to AI",
-        secondary: this.settings.commitmentMode ? "" : "Skip",
+        secondary: this.settings.commitmentMode ? "" : "Send without attempt",
         why: "You're in a learning-style session and this is the first question. ThinkFirst is offering one independent start before AI assistance.",
         feedbackType: "attempt",
         onPrimary: async ({ close }) => {
@@ -600,7 +606,7 @@
           if (mode === "school") {
             await this.record("school_context_set", { schoolTaskType, aiUseRule });
           }
-          await this.record("attempt_completed", { readiness, unfamiliar: readiness === "no_idea" ? unfamiliar : undefined });
+          await this.record("attempt_completed", { readiness: readiness || "not_selected", unfamiliar: readiness === "no_idea" && unfamiliar ? unfamiliar : undefined });
           close();
           this.continueToAI(perform);
         },
@@ -1167,7 +1173,7 @@
     return overlay;
   }
 
-  function buildChoiceList(options, onSelect, name = "tf-evaluation", current = "", legend = "") {
+  function buildChoiceList(options, onSelect, name = "tf-evaluation", current = "", legend = "", config = {}) {
     const fieldset = document.createElement("fieldset");
     fieldset.className = "tf-choice-list";
     fieldset.innerHTML = legend
@@ -1177,9 +1183,20 @@
       const id = `${name}-${value}`;
       const row = document.createElement("label");
       row.className = "tf-choice";
-      const checked = current ? value === current : value === "unsure" || index === 0;
+      const checked = current ? value === current : !config.allowNone && (value === "unsure" || index === 0);
       row.innerHTML = `<input type="radio" name="${escapeHtml(name)}" id="${id}" value="${value}" ${checked ? "checked" : ""}> <span>${escapeHtml(label)}</span>`;
-      row.querySelector("input").addEventListener("change", () => onSelect(value));
+      const input = row.querySelector("input");
+      input.addEventListener("click", (event) => {
+        if (!config.toggleable || !input.checked || current !== value) return;
+        event.preventDefault();
+        input.checked = false;
+        current = "";
+        onSelect("");
+      });
+      input.addEventListener("change", () => {
+        current = value;
+        onSelect(value);
+      });
       fieldset.append(row);
     });
     return fieldset;

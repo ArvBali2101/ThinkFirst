@@ -79,3 +79,12 @@ test("late observed ChatGPT messages do not open an attempt prompt after AI has 
   assert.equal(handler.includes("showAttemptFirst"), false);
   assert.equal(handler.includes("attempt_prompt_shown"), false);
 });
+
+test("attempt readiness choices are optional and can be cleared", () => {
+  const content = readFileSync(path.join(root, "src/content/index.js"), "utf8");
+  assert.match(content, /let readiness = ""/);
+  assert.match(content, /let unfamiliar = ""/);
+  assert.match(content, /allowNone: true/);
+  assert.match(content, /toggleable: true/);
+  assert.match(content, /readiness: readiness \|\| "not_selected"/);
+});
