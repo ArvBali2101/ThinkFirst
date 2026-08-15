@@ -88,3 +88,12 @@ test("attempt readiness choices are optional and can be cleared", () => {
   assert.match(content, /toggleable: true/);
   assert.match(content, /readiness: readiness \|\| "not_selected"/);
 });
+
+test("first attempt can trigger from composer input before ChatGPT send", () => {
+  const content = readFileSync(path.join(root, "src/content/index.js"), "utf8");
+  assert.match(content, /observePromptIntent\(callback\)/);
+  assert.match(content, /this\.adapter\.observePromptIntent\(\(\) => this\.handlePromptIntent\(\)\)/);
+  assert.match(content, /async handlePromptIntent\(\)/);
+  assert.match(content, /this\.showAttemptFirst\(null, \{ submitAfter: false \}\)/);
+  assert.match(content, /Done - I'll ask AI/);
+});

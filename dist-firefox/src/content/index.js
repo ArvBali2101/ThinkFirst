@@ -80,6 +80,23 @@
       this.cleanups.push(() => document.removeEventListener("keydown", keyHandler, true));
     }
 
+    observePromptIntent(callback) {
+      const handler = (event) => {
+        if (this.controller.shouldBypassSubmit()) return;
+        const prompt = this.findPromptRoot();
+        if (!prompt || !prompt.contains(event.target)) return;
+        setTimeout(() => {
+          if (this.hasPromptText()) callback();
+        }, 0);
+      };
+      document.addEventListener("beforeinput", handler, true);
+      document.addEventListener("input", handler, true);
+      document.addEventListener("paste", handler, true);
+      this.cleanups.push(() => document.removeEventListener("beforeinput", handler, true));
+      this.cleanups.push(() => document.removeEventListener("input", handler, true));
+      this.cleanups.push(() => document.removeEventListener("paste", handler, true));
+    }
+
     observeAssistantStart(callback) {
       const observer = new MutationObserver(() => {
         const user = this.findLatestUserMessage();
@@ -167,6 +184,17 @@
       return document.querySelector("#prompt-textarea, textarea, [contenteditable='true']");
     }
 
+    hasPromptText() {
+      const prompt = this.findPromptRoot();
+      if (!prompt) return false;
+      const text = "value" in prompt ? prompt.value : prompt.textContent;
+      return Boolean(text?.trim());
+    }
+
+    focusPrompt() {
+      this.findPromptRoot()?.focus();
+    }
+
     findLatestUserMessage() {
       const nodes = [
         ...document.querySelectorAll("[data-message-author-role='user']")
@@ -249,6 +277,7 @@
       document.documentElement.classList.toggle("tf-dyslexia-friendly", Boolean(this.settings.dyslexiaFriendly));
       this.renderDock();
       this.adapter.observeUserSubmit((submission) => this.handleUserSubmit(submission));
+      this.adapter.observePromptIntent(() => this.handlePromptIntent());
       this.adapter.observeAssistantStart(() => {});
       this.adapter.observeAssistantComplete((detail) => this.handleAssistantComplete(detail));
       this.adapter.observeAssistantCopy((detail) => this.record("assistant_copy_detected", detail));
@@ -304,7 +333,7 @@
         this.fallbackAttemptShown = true;
         await this.record("attempt_prompt_shown");
         this.markAutoIntervention();
-        this.showAttemptFirst(perform);
+        this.showAttemptFirst(perform, { submitAfter: true });
         return;
       }
 
@@ -314,6 +343,18 @@
       this.verifyShown = false;
       this.reflectionShown = false;
       this.schoolCheckShown = false;
+    }
+
+    async handlePromptIntent() {
+      this.refreshConversationState();
+      if (!this.isLearningActive()) return;
+      if (!this.settings.attemptEnabled || this.attemptShown || this.attemptPromptOpen || !this.canAutoIntervene()) return;
+      this.ensureSession();
+      this.attemptShown = true;
+      this.fallbackAttemptShown = true;
+      await this.record("attempt_prompt_shown");
+      this.markAutoIntervention();
+      this.showAttemptFirst(null, { submitAfter: false });
     }
 
     async handleUserMessageObserved(userNode) {
@@ -479,7 +520,11 @@
     continueToAI(perform) {
       this.promptCount += 1;
       this.assistantCompleted = false;
-      perform();
+      if (typeof perform === "function") {
+        perform();
+      } else {
+        this.adapter.focusPrompt();
+      }
       this.renderDock();
     }
 
@@ -514,7 +559,7 @@
       this.renderDock();
     }
 
-    showAttemptFirst(perform) {
+    showAttemptFirst(perform, { submitAfter = typeof perform === "function" } = {}) {
       this.attemptPromptOpen = true;
       const mode = this.getMode();
       const copy = getAttemptCopy(mode);
@@ -592,8 +637,8 @@
         textareaPlaceholder: copy.placeholder,
         requireText: false,
         footer: "Your attempt is not saved.",
-        primary: "Continue to AI",
-        secondary: this.settings.commitmentMode ? "" : "Send without attempt",
+        primary: submitAfter ? "Continue to AI" : "Done - I'll ask AI",
+        secondary: this.settings.commitmentMode ? "" : submitAfter ? "Send without attempt" : "Skip for this question",
         why: "You're in a learning-style session and this is the first question. ThinkFirst is offering one independent start before AI assistance.",
         feedbackType: "attempt",
         onPrimary: async ({ close }) => {
@@ -608,14 +653,14 @@
           }
           await this.record("attempt_completed", { readiness: readiness || "not_selected", unfamiliar: readiness === "no_idea" && unfamiliar ? unfamiliar : undefined });
           close();
-          this.continueToAI(perform);
+          this.continueToAI(submitAfter ? perform : null);
         },
         onSecondary: async ({ close }) => {
           this.attemptPromptOpen = false;
           await this.record("attempt_skipped");
           this.noteSkip();
           close();
-          this.continueToAI(perform);
+          this.continueToAI(submitAfter ? perform : null);
         }
       });
       this.adapter.injectIntervention(modal);
