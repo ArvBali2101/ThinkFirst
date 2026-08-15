@@ -113,7 +113,8 @@ test("fresh ChatGPT sessions show the full Attempt First prompt before the first
 test("Compare waits for a real submitted user message and completed assistant response", () => {
   const content = readFileSync(path.join(root, "src/content/index.js"), "utf8");
   assert.match(content, /awaitingAssistantResponse = true/);
-  assert.match(content, /userMessageObservedForPrompt = true/);
-  assert.match(content, /if \(!this\.awaitingAssistantResponse \|\| !this\.userMessageObservedForPrompt \|\| this\.promptCount < 1\) return/);
+  assert.match(content, /assistantNodeAtSubmit = this\.adapter\.findLatestAssistant\(\)/);
+  assert.match(content, /if \(!this\.awaitingAssistantResponse \|\| this\.promptCount < 1\) return/);
+  assert.match(content, /node && this\.assistantNodeAtSubmit && node === this\.assistantNodeAtSubmit/);
   assert.match(content, /if \(typeof perform === "function"\) \{[\s\S]*?this\.promptCount \+= 1/);
 });

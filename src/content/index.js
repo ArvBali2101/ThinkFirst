@@ -255,6 +255,7 @@
       this.assistantCompleted = false;
       this.awaitingAssistantResponse = false;
       this.userMessageObservedForPrompt = false;
+      this.assistantNodeAtSubmit = null;
       this.responseInteracted = false;
       this.submitBypassUntil = 0;
       this.onFollowup = null;
@@ -352,6 +353,7 @@
       this.promptCount += 1;
       this.awaitingAssistantResponse = true;
       this.userMessageObservedForPrompt = false;
+      this.assistantNodeAtSubmit = this.adapter.findLatestAssistant();
       this.assistantCompleted = false;
       this.evaluationShown = false;
       this.verifyShown = false;
@@ -384,10 +386,12 @@
       this.promptCount = Math.max(this.promptCount, 1);
     }
 
-    handleAssistantComplete({ sourcePresent }) {
+    handleAssistantComplete({ node, sourcePresent }) {
       if (!this.sessionId || !this.isLearningActive() || this.assistantCompleted) return;
-      if (!this.awaitingAssistantResponse || !this.userMessageObservedForPrompt || this.promptCount < 1) return;
+      if (!this.awaitingAssistantResponse || this.promptCount < 1) return;
+      if (node && this.assistantNodeAtSubmit && node === this.assistantNodeAtSubmit) return;
       this.awaitingAssistantResponse = false;
+      this.assistantNodeAtSubmit = null;
       this.assistantCompleted = true;
       this.responseInteracted = false;
       this.exchangesSinceAuto += 1;
@@ -493,6 +497,7 @@
       this.assistantCompleted = false;
       this.awaitingAssistantResponse = false;
       this.userMessageObservedForPrompt = false;
+      this.assistantNodeAtSubmit = null;
       this.responseInteracted = false;
       this.fallbackAttemptShown = false;
       this.currentConversationKey = this.getConversationKey();
@@ -543,6 +548,7 @@
         this.promptCount += 1;
         this.awaitingAssistantResponse = true;
         this.userMessageObservedForPrompt = false;
+        this.assistantNodeAtSubmit = this.adapter.findLatestAssistant();
         this.assistantCompleted = false;
         perform();
       } else {
