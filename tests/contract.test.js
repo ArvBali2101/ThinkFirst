@@ -128,3 +128,20 @@ test("Compare recovers when ChatGPT send events are missed but a new assistant s
   assert.match(content, /this\.promptCount = Math\.max\(this\.promptCount, 1\)/);
   assert.match(content, /this\.awaitingAssistantResponse = true/);
 });
+
+test("Create and Research modes use mode-specific evaluation forms", () => {
+  const content = readFileSync(path.join(root, "src/content/index.js"), "utf8");
+  assert.match(content, /function getEvaluateCopy\(mode\)/);
+  assert.match(content, /AI changed my voice too much/);
+  assert.match(content, /I need to rewrite this in my own words/);
+  assert.match(content, /I'm not sure what is still mine/);
+  assert.match(content, /AI made a factual claim I need to check/);
+  assert.match(content, /The source quality is uncertain/);
+  assert.match(content, /I need an independent source/);
+  assert.match(content, /const copy = getEvaluateCopy\(this\.getMode\(\)\)/);
+});
+
+test("Create mode prioritizes authorship compare before source verification", () => {
+  const content = readFileSync(path.join(root, "src/content/index.js"), "utf8");
+  assert.match(content, /const researchLike = mode === "research" \|\| \(mode !== "create" && Boolean\(sourcePresent\)\)/);
+});

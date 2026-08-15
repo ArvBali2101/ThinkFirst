@@ -423,7 +423,7 @@
 
     choosePostResponseIntervention({ sourcePresent = false } = {}) {
       const mode = this.getMode();
-      const researchLike = mode === "research" || Boolean(sourcePresent);
+      const researchLike = mode === "research" || (mode !== "create" && Boolean(sourcePresent));
       const relianceCue = this.promptCount >= 3 || this.responseInteracted === false;
       if (mode === "school" && !this.schoolCheckShown) {
         return {
@@ -715,25 +715,16 @@
       if (this.evaluationShown && !manual) return;
       this.evaluationShown = true;
       await this.record("evaluation_prompt_shown");
-      const options = [
-        ["added_missing", "Added something I missed"],
-        ["corrected_mistake", "Corrected a mistake"],
-        ["different_approach", "Used a different approach"],
-        ["confirmed", "Confirmed my approach"],
-        ["disagree", "I disagree with part of the answer"],
-        ["challenge", "I want to challenge one part"],
-        ["confused", "I don't understand part of the answer"],
-        ["unsure", "I'm not sure yet"]
-      ];
-      let selected = "unsure";
+      const copy = getEvaluateCopy(this.getMode());
+      let selected = copy.defaultValue;
       const modal = createModal({
-        title: this.getMode() === "create" ? "Keep authorship visible." : "Compare, don't just replace.",
-        body: this.getMode() === "create" ? "What changed between your idea and the AI's version?" : "What changed between your thinking and the AI answer?",
-        customBody: buildChoiceList(options, (value) => {
+        title: copy.title,
+        body: copy.body,
+        customBody: buildChoiceList(copy.options, (value) => {
           selected = value;
-        }),
-        inputLabel: "One thing I noticed",
-        inputPlaceholder: "One thing I noticed...",
+        }, "tf-evaluation", selected),
+        inputLabel: copy.inputLabel,
+        inputPlaceholder: copy.inputPlaceholder,
         primary: "Done",
         secondary: "Skip",
         why: manual ? "You asked for Compare from the ThinkFirst tools. This helps separate your reasoning from the AI's contribution." : whyForAutomaticReason(reason),
@@ -1426,6 +1417,63 @@
       list.append(item);
     }
     return list;
+  }
+
+  function getEvaluateCopy(mode) {
+    if (mode === "create") {
+      return {
+        title: "Keep authorship visible.",
+        body: "What changed between your direction and the AI's version?",
+        inputLabel: "One authorship decision",
+        inputPlaceholder: "One thing I will keep, rewrite, reject, or check...",
+        defaultValue: "not_sure_mine",
+        options: [
+          ["useful_direction", "AI gave me a useful direction"],
+          ["voice_changed", "AI changed my voice too much"],
+          ["structure_improved", "AI improved the structure"],
+          ["idea_to_use", "AI added an idea I might use"],
+          ["rewrite_own_words", "I need to rewrite this in my own words"],
+          ["needs_citation", "This needs citation or checking"],
+          ["audience_mismatch", "It does not match my audience"],
+          ["not_sure_mine", "I'm not sure what is still mine"]
+        ]
+      };
+    }
+    if (mode === "research") {
+      return {
+        title: "Compare the claim, not just the answer.",
+        body: "What changed in the evidence, source quality, or claim you would rely on?",
+        inputLabel: "One claim or source note",
+        inputPlaceholder: "One claim, source, or disagreement I noticed...",
+        defaultValue: "need_independent_source",
+        options: [
+          ["claim_to_check", "AI made a factual claim I need to check"],
+          ["new_evidence", "AI added evidence I did not know"],
+          ["changed_understanding", "AI changed my understanding of the issue"],
+          ["source_quality_uncertain", "The source quality is uncertain"],
+          ["possible_disagreement", "I found possible disagreement"],
+          ["need_independent_source", "I need an independent source"],
+          ["not_sure", "I'm not sure yet"]
+        ]
+      };
+    }
+    return {
+      title: "Compare, don't just replace.",
+      body: "What changed between your thinking and the AI answer?",
+      inputLabel: "One thing I noticed",
+      inputPlaceholder: "One thing I noticed...",
+      defaultValue: "unsure",
+      options: [
+        ["added_missing", "Added something I missed"],
+        ["corrected_mistake", "Corrected a mistake"],
+        ["different_approach", "Used a different approach"],
+        ["confirmed", "Confirmed my approach"],
+        ["disagree", "I disagree with part of the answer"],
+        ["challenge", "I want to challenge one part"],
+        ["confused", "I don't understand part of the answer"],
+        ["unsure", "I'm not sure yet"]
+      ]
+    };
   }
 
   function getAttemptCopy(mode) {
