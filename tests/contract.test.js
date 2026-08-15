@@ -63,3 +63,19 @@ test("delete-all flows also clear the local pilot survey", () => {
   assert.match(dashboard, /localStorage\.removeItem\(\"tf_pilot_survey_local\"\)/);
   assert.match(settings, /localStorage\.removeItem\(\"tf_pilot_survey_local\"\)/);
 });
+
+test("popup uses one mode picker instead of duplicate dropdown and cards", () => {
+  const popupHtml = readFileSync(path.join(root, "src/popup/popup.html"), "utf8");
+  const popupJs = readFileSync(path.join(root, "src/popup/Popup.js"), "utf8");
+  assert.equal(popupHtml.includes("modeSelect"), false);
+  assert.equal(popupHtml.includes("<select"), false);
+  assert.equal(popupJs.includes("modeSelect"), false);
+  assert.match(popupHtml, /modeCards/);
+});
+
+test("late observed ChatGPT messages do not open an attempt prompt after AI has already started", () => {
+  const content = readFileSync(path.join(root, "src/content/index.js"), "utf8");
+  const handler = content.match(/async handleUserMessageObserved\(userNode\) \{[\s\S]*?\n    \}/)?.[0] || "";
+  assert.equal(handler.includes("showAttemptFirst"), false);
+  assert.equal(handler.includes("attempt_prompt_shown"), false);
+});

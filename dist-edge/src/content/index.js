@@ -320,19 +320,12 @@
       this.refreshConversationState();
       if (!this.isLearningActive() || this.lastUserMessageNode === userNode) return;
       this.lastUserMessageNode = userNode;
-      if (this.attemptPromptOpen) return;
-      if (this.attemptShown || this.fallbackAttemptShown || !this.canAutoIntervene()) return;
       this.ensureSession();
-      this.fallbackAttemptShown = true;
-      this.attemptShown = true;
       this.evaluationShown = false;
       this.verifyShown = false;
       this.reflectionShown = false;
       this.schoolCheckShown = false;
       this.promptCount = Math.max(this.promptCount, 1);
-      await this.record("attempt_prompt_shown");
-      this.markAutoIntervention();
-      this.showAttemptFirst(() => {});
     }
 
     handleAssistantComplete({ sourcePresent }) {
@@ -536,9 +529,6 @@
         customBody: () => {
           const fragment = document.createDocumentFragment();
           if (!this.learningGoalSet) {
-            const heading = document.createElement("h3");
-            heading.textContent = "Session goal";
-            fragment.append(heading);
             fragment.append(buildChoiceList([
               ["understand", "Understand something"],
               ["solve", "Solve something"],
@@ -548,12 +538,9 @@
               ["schoolwork", "Complete schoolwork responsibly"]
             ], (value) => {
               goalType = value;
-            }, "tf-goal", goalType));
+            }, "tf-goal", goalType, "1. What is the main goal?"));
           }
           if (mode === "school") {
-            const schoolHeading = document.createElement("h3");
-            schoolHeading.textContent = "School context";
-            fragment.append(schoolHeading);
             fragment.append(buildChoiceList([
               ["assignment", "Assignment"],
               ["exam_prep", "Exam prep"],
@@ -562,7 +549,7 @@
               ["study_notes", "Study notes"]
             ], (value) => {
               schoolTaskType = value;
-            }, "tf-school-task", schoolTaskType));
+            }, "tf-school-task", schoolTaskType, "2. What kind of school task is this?"));
             fragment.append(buildChoiceList([
               ["allowed", "AI is allowed"],
               ["limited", "AI is allowed with limits"],
@@ -570,7 +557,7 @@
               ["unknown", "I need to check the rule"]
             ], (value) => {
               aiUseRule = value;
-            }, "tf-ai-rule", aiUseRule));
+            }, "tf-ai-rule", aiUseRule, "3. What are the AI-use rules?"));
           }
           fragment.append(buildChoiceList([
             ["attempt", "I can attempt it"],
@@ -579,7 +566,7 @@
           ], (value) => {
             readiness = value;
             modal.dispatchEvent(new CustomEvent("tf-refresh"));
-          }, "tf-readiness", readiness));
+          }, "tf-readiness", readiness, mode === "school" ? "4. How much can you do before AI?" : "2. How much can you do before AI?"));
           if (readiness === "no_idea") {
             fragment.append(buildChoiceList([
               ["terminology", "Terminology"],
@@ -589,7 +576,7 @@
               ["not_sure", "Not sure"]
             ], (value) => {
               unfamiliar = value;
-            }, "tf-unfamiliar", unfamiliar));
+            }, "tf-unfamiliar", unfamiliar, mode === "school" ? "5. What feels unclear?" : "3. What feels unclear?"));
           } else {
             fragment.append(buildPromptExamples(copy.examples));
           }
@@ -1180,10 +1167,12 @@
     return overlay;
   }
 
-  function buildChoiceList(options, onSelect, name = "tf-evaluation", current = "") {
+  function buildChoiceList(options, onSelect, name = "tf-evaluation", current = "", legend = "") {
     const fieldset = document.createElement("fieldset");
     fieldset.className = "tf-choice-list";
-    fieldset.innerHTML = "<legend class='tf-sr-only'>Choice</legend>";
+    fieldset.innerHTML = legend
+      ? `<legend class="tf-choice-legend">${escapeHtml(legend)}</legend>`
+      : "<legend class='tf-sr-only'>Choice</legend>";
     options.forEach(([value, label], index) => {
       const id = `${name}-${value}`;
       const row = document.createElement("label");

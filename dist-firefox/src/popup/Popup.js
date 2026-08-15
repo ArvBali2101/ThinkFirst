@@ -3,15 +3,6 @@ const $ = (selector) => document.querySelector(selector);
 let snapshot = await send({ type: "GET_SNAPSHOT" });
 render();
 
-$("#modeSelect").addEventListener("change", async (event) => {
-  snapshot = await send({
-    type: "UPDATE_SETTINGS",
-    patch: { mode: event.target.value }
-  });
-  snapshot = await send({ type: "GET_SNAPSHOT" });
-  render();
-});
-
 $("#pauseSite").addEventListener("change", async (event) => {
   const host = snapshot.providerStatus?.host || "chatgpt.com";
   const pausedSites = {
@@ -33,7 +24,6 @@ function render() {
   $("#provider").textContent = detectedRecently ? "ChatGPT detected" : "ChatGPT supported";
   const mode = normalizeMode(settings.mode);
   $("#mode").textContent = `${labelForMode(mode)} active`;
-  $("#modeSelect").value = mode;
   renderModeCards(mode);
   const host = provider?.host || "chatgpt.com";
   $("#pauseSite").checked = Boolean(settings.pausedSites?.[host]);

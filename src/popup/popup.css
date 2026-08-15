@@ -14,23 +14,11 @@
   width: 100%;
 }
 
-.popup-mode {
-  display: grid;
-  gap: 8px;
-  padding-bottom: 12px;
-}
-
-.popup-mode span {
-  font-weight: 700;
-}
-
-.popup-mode select {
-  min-height: 38px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 6px 10px;
-  background: #ffffff;
+.popup-mode-heading {
+  margin: 0 0 10px;
   color: var(--ink);
+  font-size: 16px;
+  line-height: 1.25;
 }
 
 .popup-mode-cards {

@@ -309,17 +309,24 @@
 
 .tf-choice-list {
   display: grid;
-  gap: 8px;
-  margin: 12px 0 0;
+  gap: 6px;
+  margin: 14px 0 0;
   padding: 0;
   border: 0;
+}
+
+.tf-choice-legend {
+  margin-bottom: 7px;
+  color: #214e44;
+  font-size: 13px;
+  font-weight: 750;
 }
 
 .tf-choice {
   display: flex;
   gap: 9px;
   align-items: center;
-  min-height: 34px;
+  min-height: 32px;
   padding: 6px 8px;
   border: 1px solid #d6dee2;
   border-radius: 12px;
