@@ -40,6 +40,7 @@ AI should make knowledge more accessible, not make our own thinking optional. Th
 - Measurement tab explaining each metric's numerator, denominator, trigger, privacy boundary, and limitation.
 - School / Assignment Mode with AI-use rule, assignment-stage, source-check, and authorship-process prompts.
 - School copy blocker with required first attempt, no skip path, copy blocking, and a 10-minute Assignment Integrity Pause in School or Commitment Mode.
+- Broad Exam Guard for exam-like webpages: local URL/title/keyword detection, copy/paste protections, ChatGPT warning banner, suspicious-prompt redirects, configured blocked sites, tab-switch warnings, and temporary local counters.
 - Actionable local insights.
 - Privacy panel with real storage counters.
 - Privacy inspector event timeline.

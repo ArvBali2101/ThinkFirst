@@ -38,7 +38,7 @@ export async function setState(nextState) {
 }
 
 export async function clearThinkFirstData() {
-  await chromeStorage().remove([STORAGE_KEYS.state, STORAGE_KEYS.providerStatus]);
+  await chromeStorage().remove([STORAGE_KEYS.state, STORAGE_KEYS.providerStatus, STORAGE_KEYS.examGuard]);
 }
 
 export async function setProviderStatus(status) {
@@ -53,4 +53,37 @@ export async function setProviderStatus(status) {
 export async function getProviderStatus() {
   const result = await chromeStorage().get(STORAGE_KEYS.providerStatus);
   return result[STORAGE_KEYS.providerStatus] || null;
+}
+
+export async function getExamGuard() {
+  const result = await chromeStorage().get(STORAGE_KEYS.examGuard);
+  const guard = result[STORAGE_KEYS.examGuard] || null;
+  if (!guard?.active) return guard;
+  if (guard.expiresAt && guard.expiresAt < Date.now()) {
+    await chromeStorage().remove(STORAGE_KEYS.examGuard);
+    return null;
+  }
+  return guard;
+}
+
+export async function setExamGuard(nextGuard) {
+  await chromeStorage().set({
+    [STORAGE_KEYS.examGuard]: nextGuard
+  });
+}
+
+export async function updateExamGuard(updater) {
+  const current = await getExamGuard();
+  const next = updater(current || emptyExamGuard());
+  await setExamGuard(next);
+  return next;
+}
+
+function emptyExamGuard() {
+  return {
+    active: false,
+    startedAt: Date.now(),
+    expiresAt: Date.now(),
+    counters: {}
+  };
 }

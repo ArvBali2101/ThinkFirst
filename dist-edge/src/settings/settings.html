@@ -112,6 +112,21 @@
         </article>
 
         <article class="panel">
+          <h2>Exam Guard</h2>
+          <label class="setting-row"><span>Enable Exam Guard</span><span class="switch"><input id="examGuardEnabled" type="checkbox"><span class="slider"></span></span></label>
+          <label class="setting-stack">
+            <span>Exam page keywords</span>
+            <textarea id="examKeywords" rows="4"></textarea>
+          </label>
+          <label class="setting-stack">
+            <span>Blocked sites during exams</span>
+            <textarea id="examBlockedSites" rows="5"></textarea>
+          </label>
+          <p class="fineprint">Broad Exam Guard runs locally on webpages to look for exam-like URL, title, and page keywords. It stores temporary counts only, not question text or page URLs.</p>
+          <p class="fineprint">This is a guardrail, not a lockdown browser. A normal extension cannot fully prevent disabling or tampering.</p>
+        </article>
+
+        <article class="panel">
           <h2>Site Permissions</h2>
           <table class="privacy-table">
             <tbody>

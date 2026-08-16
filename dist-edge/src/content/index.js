@@ -1,6 +1,7 @@
 (() => {
   const PROVIDER = "chatgpt";
   const STORAGE_SETTINGS = "tf_settings";
+  const STORAGE_EXAM_GUARD = "tf_exam_guard";
   const DEFAULT_SETTINGS = {
     mode: "quick",
     attemptEnabled: true,
@@ -10,6 +11,9 @@
     reflectEnabled: true,
     commitmentMode: false,
     schoolCopyBlocker: true,
+    examGuardEnabled: true,
+    examKeywords: "quiz, exam, assessment, test, midterm, final, proctored, question paper",
+    examBlockedSites: "gemini.google.com, claude.ai, perplexity.ai, copilot.microsoft.com, chegg.com, coursehero.com, brainly.com, quizlet.com",
     automaticInterventionBudget: 3,
     cooldownMinutes: 5,
     cooldownExchanges: 3,
@@ -193,6 +197,12 @@
       return Boolean(text?.trim());
     }
 
+    getPromptText() {
+      const prompt = this.findPromptRoot();
+      if (!prompt) return "";
+      return ("value" in prompt ? prompt.value : prompt.textContent) || "";
+    }
+
     focusPrompt() {
       this.findPromptRoot()?.focus();
     }
@@ -245,6 +255,7 @@
   class ThinkFirstController {
     constructor() {
       this.settings = { ...DEFAULT_SETTINGS };
+      this.examGuard = null;
       this.adapter = new ChatGPTAdapter(this);
       this.sessionId = null;
       this.promptCount = 0;
@@ -295,6 +306,8 @@
         this.record("source_clicked");
       });
       this.adapter.observeFollowupSubmit(() => this.record("followup_message_detected"));
+      this.installExamChatGuard();
+      this.updateExamWarning();
       this.installInteractionTracker();
       this.installNavigationWatcher();
       this.installSessionStartPrompt();
@@ -305,12 +318,17 @@
           this.renderDock();
           this.installSessionStartPrompt();
         }
+        if (area === "local" && changes[STORAGE_EXAM_GUARD]) {
+          this.examGuard = changes[STORAGE_EXAM_GUARD].newValue || null;
+          this.updateExamWarning();
+        }
       });
     }
 
     async loadSettings() {
       const snapshot = await this.message({ type: "GET_SNAPSHOT" });
       this.settings = { ...DEFAULT_SETTINGS, ...(snapshot.settings || {}) };
+      this.examGuard = snapshot.examGuard || null;
     }
 
     isLearningActive() {
@@ -324,6 +342,13 @@
 
     async handleUserSubmit({ event, perform }) {
       this.refreshConversationState();
+      if (this.isExamModeActive() && this.looksLikeExamPrompt(this.adapter.getPromptText())) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        await this.recordExamGuard("blockedSuspiciousPrompts");
+        this.showExamRedirect();
+        return;
+      }
       if (!this.isLearningActive()) return;
       this.ensureSession();
 
@@ -374,6 +399,7 @@
 
     async handlePromptIntent() {
       this.refreshConversationState();
+      if (this.isExamModeActive()) this.updateExamWarning();
       if (!this.isLearningActive()) return;
       if (Date.now() < this.integrityPauseUntil) {
         this.showIntegrityPause();
@@ -434,6 +460,95 @@
         this.markAutoIntervention();
         setTimeout(() => this.openAutomaticIntervention(decision), 1200);
       }
+    }
+
+    installExamChatGuard() {
+      const isPromptTarget = (target) => {
+        const prompt = this.adapter.findPromptRoot();
+        return Boolean(prompt && target && (prompt === target || prompt.contains(target)));
+      };
+      const block = async (event, counter, message = "Exam Mode active: paste is blocked. Ask for explanation, not answers.") => {
+        if (!this.isExamModeActive() || !isPromptTarget(event.target)) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        await this.recordExamGuard(counter);
+        this.showExamToast(message);
+      };
+      document.addEventListener("paste", (event) => {
+        block(event, "blockedChatGPTPastes");
+      }, true);
+      document.addEventListener("beforeinput", (event) => {
+        if (!this.isExamModeActive() || !isPromptTarget(event.target)) return;
+        const bulkInsert = event.inputType === "insertFromPaste" || String(event.data || "").length > 180;
+        if (!bulkInsert) return;
+        block(event, "blockedBulkPromptInput", "Exam Mode active: long copied chunks are blocked. Try asking for a concept explanation instead.");
+      }, true);
+    }
+
+    isExamModeActive() {
+      return Boolean(
+        this.settings.examGuardEnabled !== false &&
+        this.examGuard?.active &&
+        (!this.examGuard.expiresAt || this.examGuard.expiresAt > Date.now())
+      );
+    }
+
+    looksLikeExamPrompt(text = "") {
+      const normalized = String(text).replace(/\s+/g, " ").trim();
+      if (!normalized) return false;
+      if (normalized.length >= 500) return true;
+      const lower = normalized.toLowerCase();
+      const signals = [
+        /question\s*\d+/i,
+        /\b\d+\s*marks?\b/i,
+        /\b(a|b|c|d)\)\s+.{3,}\s+(a|b|c|d)\)\s+/i,
+        /answer\s+(the\s+)?(following|this)/i,
+        /\b(quiz|exam|assessment|test|midterm|final)\b/i,
+        /\bmultiple\s+choice\b/i,
+        /\bshow\s+your\s+working\b/i
+      ];
+      return signals.some((pattern) => pattern.test(lower));
+    }
+
+    async recordExamGuard(counter) {
+      return this.message({ type: "RECORD_EXAM_GUARD", counter });
+    }
+
+    updateExamWarning() {
+      document.querySelector("#tf-exam-chat-warning")?.remove();
+      if (!this.isExamModeActive()) return;
+      const warning = document.createElement("div");
+      warning.id = "tf-exam-chat-warning";
+      warning.className = "tf-exam-chat-warning";
+      warning.textContent = "Exam Mode active - use AI only for learning. Tamper notice: ThinkFirst cannot stop another browser, profile, or disabled extension.";
+      document.body.append(warning);
+    }
+
+    showExamToast(message) {
+      document.querySelector("#tf-exam-chat-toast")?.remove();
+      const toast = document.createElement("div");
+      toast.id = "tf-exam-chat-toast";
+      toast.className = "tf-exam-chat-toast";
+      toast.textContent = message;
+      document.body.append(toast);
+      setTimeout(() => toast.remove(), 4200);
+    }
+
+    showExamRedirect() {
+      const modal = createModal({
+        title: "Exam Mode active",
+        body: "ThinkFirst stopped this prompt because it looks like an exam or assessment question. Use AI for learning support, not direct answers.",
+        customBody: () => buildPromptExamples([
+          "Explain this topic at a high level without solving the question.",
+          "Teach me the method I should use for this kind of problem.",
+          "Give me a practice example that is not from my exam."
+        ]),
+        primary: "I will ask for learning help",
+        secondary: "",
+        why: "Exam Mode is active from an exam-like page. ThinkFirst blocks copied questions and redirects toward learning-only prompts.",
+        onPrimary: ({ close }) => close()
+      });
+      this.adapter.injectIntervention(modal);
     }
 
     async handleAssistantCopy(detail, event) {

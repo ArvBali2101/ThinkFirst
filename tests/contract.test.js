@@ -22,7 +22,7 @@ test("manifest entry points and web accessible resources exist", () => {
     manifest.background.service_worker,
     manifest.action.default_popup,
     manifest.options_page,
-    ...manifest.content_scripts.flatMap((script) => [...script.js, ...script.css]),
+    ...manifest.content_scripts.flatMap((script) => [...(script.js || []), ...(script.css || [])]),
     ...manifest.web_accessible_resources.flatMap((resource) => resource.resources)
   ];
   for (const file of files) {
@@ -181,4 +181,33 @@ test("School student guard requires attempt, blocks copying, and preserves priva
   assert.match(content, /pauseSeconds: 600/);
   assert.equal(content.includes("clipboardText"), false);
   assert.equal(content.includes("ThinkFirst is not judging intent or calling this cheating."), true);
+});
+
+test("Exam Guard runs broadly but keeps logs temporary and metadata-only", () => {
+  const manifest = JSON.parse(readFileSync(path.join(root, "manifest.json"), "utf8"));
+  const constants = readFileSync(path.join(root, "src/shared/constants.js"), "utf8");
+  const serviceWorker = readFileSync(path.join(root, "src/background/serviceWorker.js"), "utf8");
+  const examGuard = readFileSync(path.join(root, "src/content/examGuard.js"), "utf8");
+  const chatgpt = readFileSync(path.join(root, "src/content/index.js"), "utf8");
+  const settingsHtml = readFileSync(path.join(root, "src/settings/settings.html"), "utf8");
+  const allUrlsScript = manifest.content_scripts.find((script) => script.matches.includes("<all_urls>"));
+  assert.ok(allUrlsScript, "Exam Guard broad content script is missing");
+  assert.deepEqual(allUrlsScript.js, ["src/content/examGuard.js"]);
+  for (const forbidden of ["tabs", "history", "clipboardRead", "clipboardWrite", "webRequest"]) {
+    assert.equal(manifest.permissions.includes(forbidden), false);
+  }
+  assert.match(constants, /examGuard: "tf_exam_guard"/);
+  assert.match(constants, /examGuardEnabled: true/);
+  assert.match(settingsHtml, /Exam Guard/);
+  assert.match(serviceWorker, /ACTIVATE_EXAM_GUARD/);
+  assert.match(serviceWorker, /RECORD_EXAM_GUARD/);
+  assert.match(examGuard, /detectExamSignal/);
+  assert.match(examGuard, /blockedExamCopies/);
+  assert.match(examGuard, /tabSwitchWarnings/);
+  assert.match(examGuard, /blockedSiteVisits/);
+  assert.match(chatgpt, /Exam Mode active - use AI only for learning\./);
+  assert.match(chatgpt, /blockedChatGPTPastes/);
+  assert.match(chatgpt, /blockedSuspiciousPrompts/);
+  assert.equal(serviceWorker.includes("questionText"), false);
+  assert.equal(examGuard.includes("setExamQuestion"), false);
 });

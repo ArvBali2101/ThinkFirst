@@ -7,6 +7,9 @@ const fields = [
   "reflectEnabled",
   "commitmentMode",
   "schoolCopyBlocker",
+  "examGuardEnabled",
+  "examKeywords",
+  "examBlockedSites",
   "intensity",
   "verificationLevel",
   "promptComplexity",
@@ -37,6 +40,9 @@ function render() {
   document.querySelector("#reflectEnabled").checked = settings.reflectEnabled;
   document.querySelector("#commitmentMode").checked = settings.commitmentMode;
   document.querySelector("#schoolCopyBlocker").checked = settings.schoolCopyBlocker !== false;
+  document.querySelector("#examGuardEnabled").checked = settings.examGuardEnabled !== false;
+  document.querySelector("#examKeywords").value = settings.examKeywords || "";
+  document.querySelector("#examBlockedSites").value = settings.examBlockedSites || "";
   document.querySelector("#intensity").value = settings.intensity;
   document.querySelector("#verificationLevel").value = settings.verificationLevel;
   document.querySelector("#promptComplexity").value = settings.promptComplexity;
@@ -57,6 +63,9 @@ async function save() {
     reflectEnabled: document.querySelector("#reflectEnabled").checked,
     commitmentMode: document.querySelector("#commitmentMode").checked,
     schoolCopyBlocker: document.querySelector("#schoolCopyBlocker").checked,
+    examGuardEnabled: document.querySelector("#examGuardEnabled").checked,
+    examKeywords: document.querySelector("#examKeywords").value,
+    examBlockedSites: document.querySelector("#examBlockedSites").value,
     intensity: document.querySelector("#intensity").value,
     verificationLevel: document.querySelector("#verificationLevel").value,
     promptComplexity: document.querySelector("#promptComplexity").value,

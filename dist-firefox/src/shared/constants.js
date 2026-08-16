@@ -1,7 +1,8 @@
 export const STORAGE_KEYS = {
   settings: "tf_settings",
   state: "tf_state",
-  providerStatus: "tf_provider_status"
+  providerStatus: "tf_provider_status",
+  examGuard: "tf_exam_guard"
 };
 
 export const PROVIDERS = {
@@ -18,6 +19,9 @@ export const DEFAULT_SETTINGS = {
   reflectEnabled: true,
   commitmentMode: false,
   schoolCopyBlocker: true,
+  examGuardEnabled: true,
+  examKeywords: "quiz, exam, assessment, test, midterm, final, proctored, question paper",
+  examBlockedSites: "gemini.google.com, claude.ai, perplexity.ai, copilot.microsoft.com, chegg.com, coursehero.com, brainly.com, quizlet.com",
   automaticInterventionBudget: 3,
   cooldownMinutes: 5,
   cooldownExchanges: 3,

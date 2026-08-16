@@ -681,6 +681,48 @@ Expected:
 | Privacy Inspector | source_clicked event appears. |
 | Stored data | No full URL stored. |
 
+### Test E01: Broad Exam Guard
+
+Setup:
+
+1. Open ThinkFirst settings.
+2. Turn `Enable Exam Guard` on.
+3. Keep keywords such as `quiz`, `exam`, `assessment`, `test`, `midterm`, and `final`.
+4. Keep blocked sites such as `gemini.google.com`, `claude.ai`, `perplexity.ai`, `chegg.com`, `coursehero.com`, `brainly.com`, and `quizlet.com`.
+5. Open any test page whose URL, title, or page text includes `quiz`, `exam`, or `assessment`.
+
+Expected on the exam-like page:
+
+| Check | Expected |
+|---|---|
+| Exam detection | A small `ThinkFirst Exam Mode active` notice appears. |
+| Copy | Copy/cut from the exam page is blocked. |
+| Right-click | Context menu is blocked where the browser allows it. |
+| Selection | Text selection is disabled where possible. |
+| Tab switch | Leaving and returning to the tab records a temporary warning count and shows a reminder. |
+| Privacy | No exam question text, page title, or page URL is stored. |
+
+Expected on ChatGPT while Exam Mode is active:
+
+| Check | Expected |
+|---|---|
+| Warning banner | `Exam Mode active - use AI only for learning.` |
+| Paste | Paste into ChatGPT prompt is blocked. |
+| Bulk insert | Long pasted/bulk chunks are blocked. |
+| Suspicious prompt | Prompt that looks like an exam question is stopped before submission. |
+| Redirect suggestion | Modal suggests asking for topic explanation, method teaching, or a fresh practice example. |
+
+Expected on configured blocked sites:
+
+| Check | Expected |
+|---|---|
+| Other AI / answer site | Full-page Exam Mode blocker appears while exam mode is active. |
+| Interaction | Clicks, typing, copy, paste, and right-click are blocked by the overlay where possible. |
+
+Important limitation:
+
+ThinkFirst Exam Guard is not a lockdown browser. A normal extension cannot fully prevent disabling, using another browser/profile/device, screenshots, photos, or operating-system-level copying. It is a visible, local, privacy-preserving guardrail.
+
 ## 9. Settings Test Matrix
 
 Run each setting test in a fresh ChatGPT chat after changing the setting.
@@ -698,6 +740,7 @@ Run each setting test in a fresh ChatGPT chat after changing the setting.
 | SET09 | Dyslexia-friendly On | Refresh ChatGPT | ThinkFirst UI should use dyslexia-friendly presentation. No layout break. |
 | SET10 | Clear all data | Settings or Dashboard Privacy | Dashboard counters and pilot survey should clear. |
 | SET11 | School copy blocker Off | School mode, copy an assistant answer | Copy detection may still be counted, but the 10-minute integrity blocker should not appear. |
+| SET12 | Exam Guard Off | Open exam-like page and ChatGPT | No exam notice, no ChatGPT exam banner, no exam paste blocking. |
 
 ## 10. Dashboard Test Guide
 

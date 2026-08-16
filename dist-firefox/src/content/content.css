@@ -13,6 +13,34 @@
   z-index: 2147483600;
 }
 
+.tf-exam-chat-warning,
+.tf-exam-chat-toast {
+  position: fixed;
+  left: 50%;
+  z-index: 2147483646;
+  transform: translateX(-50%);
+  max-width: min(620px, calc(100vw - 32px));
+  border: 1px solid #d4b56c;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: #fff0bf;
+  color: #214e44;
+  box-shadow: 0 18px 42px rgba(15, 23, 26, 0.2);
+  font: 800 13px/1.35 "DM Sans", Inter, system-ui, sans-serif;
+  text-align: center;
+}
+
+.tf-exam-chat-warning {
+  top: 14px;
+}
+
+.tf-exam-chat-toast {
+  top: 62px;
+  border-radius: 10px;
+  background: #fbfaf7;
+  font-weight: 700;
+}
+
 .tf-pill__button {
   display: grid;
   grid-template-columns: auto auto auto;

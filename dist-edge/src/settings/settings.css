@@ -14,6 +14,30 @@ select {
   color: var(--ink);
 }
 
+textarea {
+  width: 100%;
+  min-height: 92px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: #ffffff;
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.4;
+}
+
+.setting-stack {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.setting-stack span {
+  color: var(--ink);
+  font-weight: 800;
+}
+
 .privacy-actions {
   margin-top: 14px;
 }

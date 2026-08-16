@@ -6,11 +6,14 @@ import { STORAGE_KEYS } from "../shared/constants.js";
 import {
   clearThinkFirstData,
   getProviderStatus,
+  getExamGuard,
   getSettings,
   getState,
+  setExamGuard,
   setProviderStatus,
   setSettings,
   setState,
+  updateExamGuard,
   updateSettings
 } from "../storage/localStore.js";
 
@@ -54,11 +57,24 @@ async function handleMessage(message, sender) {
       assertMetadataOnly(message.event);
       return recordEvent(message.event);
 
+    case "GET_EXAM_GUARD":
+      return { ok: true, examGuard: await getExamGuard() };
+
+    case "ACTIVATE_EXAM_GUARD":
+      return activateExamGuard(message.detail || {}, sender);
+
+    case "RECORD_EXAM_GUARD":
+      return recordExamGuard(message.counter);
+
+    case "CLEAR_EXAM_GUARD":
+      await setExamGuard({ active: false, endedAt: Date.now(), counters: {} });
+      return { ok: true, examGuard: await getExamGuard() };
+
     case "PROVIDER_STATUS":
       await setProviderStatus({
         provider: message.provider || "chatgpt",
         detected: Boolean(message.detected),
-        host: sender?.url ? new URL(sender.url).hostname : undefined
+        host: safeHostname(sender?.url)
       });
       return { ok: true };
 
@@ -95,16 +111,18 @@ async function handleMessage(message, sender) {
 }
 
 async function snapshot() {
-  const [settings, state, providerStatus] = await Promise.all([
+  const [settings, state, providerStatus, examGuard] = await Promise.all([
     getSettings(),
     getState(),
-    getProviderStatus()
+    getProviderStatus(),
+    getExamGuard()
   ]);
   return {
     ok: true,
     settings,
     state,
     providerStatus,
+    examGuard,
     metrics: calculateMetrics(state.stats),
     dailySeries: calculateDailySeries(state.daily),
     adaptiveLevel: getAdaptiveLevel(state.sessions, settings),
@@ -112,6 +130,45 @@ async function snapshot() {
     privacy: getPrivacyCounters(state),
     keys: STORAGE_KEYS
   };
+}
+
+async function activateExamGuard(detail = {}, sender) {
+  const settings = await getSettings();
+  if (settings.examGuardEnabled === false) return { ok: true, skipped: true };
+  const host = safeHostname(sender?.url) || detail.host;
+  const now = Date.now();
+  const examGuard = await updateExamGuard((current) => ({
+    active: true,
+    sourceHost: host,
+    startedAt: current.active ? current.startedAt : now,
+    expiresAt: now + 3 * 60 * 60_000,
+    reason: detail.reason || current.reason || "keyword",
+    counters: current.counters || {}
+  }));
+  return { ok: true, examGuard };
+}
+
+function safeHostname(url) {
+  try {
+    return url ? new URL(url).hostname : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+async function recordExamGuard(counter) {
+  if (!counter || typeof counter !== "string") return { ok: false, error: "Missing counter" };
+  const examGuard = await updateExamGuard((current) => ({
+    ...current,
+    active: current.active !== false,
+    startedAt: current.startedAt || Date.now(),
+    expiresAt: current.expiresAt || Date.now() + 3 * 60 * 60_000,
+    counters: {
+      ...(current.counters || {}),
+      [counter]: (current.counters?.[counter] || 0) + 1
+    }
+  }));
+  return { ok: true, examGuard };
 }
 
 async function recordEvent(event) {
