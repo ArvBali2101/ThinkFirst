@@ -423,23 +423,23 @@
 
     choosePostResponseIntervention({ sourcePresent = false } = {}) {
       const mode = this.getMode();
-      const researchLike = mode === "research" || (mode !== "create" && Boolean(sourcePresent));
+      const verificationRelevant = mode === "research" || Boolean(sourcePresent);
       const relianceCue = this.promptCount >= 3 || this.responseInteracted === false;
-      if (mode === "school" && !this.schoolCheckShown) {
+      if (verificationRelevant && this.settings.verifyEnabled && !this.verifyShown) {
         return {
           decisionPoint: "post_response",
-          offeredIntervention: "school_check",
-          decisionReason: "school_process_check",
+          offeredIntervention: "verify",
+          decisionReason: mode === "research" ? "research_mode" : "sources_visible",
           receptivity: "answer_stable",
           burden: `${this.autoInterventionsUsed}/${this.getAutoBudget()}`,
           bypassCooldown: this.promptCount <= 1
         };
       }
-      if (researchLike && this.settings.verifyEnabled && !this.verifyShown) {
+      if (mode === "school" && !this.schoolCheckShown) {
         return {
           decisionPoint: "post_response",
-          offeredIntervention: "verify",
-          decisionReason: mode === "research" ? "research_mode" : "sources_visible",
+          offeredIntervention: "school_check",
+          decisionReason: "school_process_check",
           receptivity: "answer_stable",
           burden: `${this.autoInterventionsUsed}/${this.getAutoBudget()}`,
           bypassCooldown: this.promptCount <= 1

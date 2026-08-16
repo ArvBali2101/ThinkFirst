@@ -53,8 +53,10 @@ test("Attempt and reflection happen max once per session", () => {
 test("Verify only appears when eligible", () => {
   const withoutSources = getInterventionPolicy({ settings: learning, session: {}, hasSources: false });
   const withSources = getInterventionPolicy({ settings: learning, session: {}, hasSources: true });
+  const createWithSources = getInterventionPolicy({ settings: { ...learning, mode: "create" }, session: {}, hasSources: true });
   assert.equal(withoutSources.verify, false);
   assert.equal(withSources.verify, true);
+  assert.equal(createWithSources.verify, true);
 });
 
 test("Light frequency limits optional reflection", () => {
@@ -84,6 +86,24 @@ test("post-response policy prioritizes verification for research or sourced answ
   });
   assert.equal(sourced.offeredIntervention, "verify");
   assert.equal(sourced.decisionReason, "sources_visible");
+
+  const sourcedCreate = choosePostResponseIntervention({
+    mode: "create",
+    sourcePresent: true,
+    promptCount: 1,
+    settings: learning
+  });
+  assert.equal(sourcedCreate.offeredIntervention, "verify");
+  assert.equal(sourcedCreate.decisionReason, "sources_visible");
+
+  const sourcedSchool = choosePostResponseIntervention({
+    mode: "school",
+    sourcePresent: true,
+    promptCount: 1,
+    settings: learning
+  });
+  assert.equal(sourcedSchool.offeredIntervention, "verify");
+  assert.equal(sourcedSchool.decisionReason, "sources_visible");
 });
 
 test("post-response policy evaluates first learn/create answer and retrieves later", () => {

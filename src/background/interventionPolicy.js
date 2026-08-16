@@ -6,12 +6,11 @@ export function getInterventionPolicy({ settings, session, hasSources = false, e
 
   const level = settings.intensity || "standard";
   const researchMode = mode === "research";
-  const createMode = mode === "create";
   const commitment = Boolean(settings.commitmentMode);
   return {
     attempt: Boolean(settings.attemptEnabled && !session?.attemptEligible && !session?.attemptCompleted && (!session?.attemptSkipped || commitment)),
     evaluate: Boolean(settings.evaluateEnabled && session?.attemptCompleted && !session?.evaluationCompleted && eventName === "assistant_complete"),
-    verify: Boolean(settings.verifyEnabled && (hasSources || researchMode) && !session?.verificationCompleted && !session?.verificationSkipped && !createMode),
+    verify: Boolean(settings.verifyEnabled && (hasSources || researchMode) && !session?.verificationCompleted && !session?.verificationSkipped),
     reflect: Boolean(settings.reflectEnabled && !session?.reflectionEligible && !session?.reflectionCompleted && !session?.reflectionSkipped && reflectionAllowed(level, session)),
     commitment,
     mode,

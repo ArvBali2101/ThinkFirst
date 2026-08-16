@@ -141,9 +141,11 @@ test("Create and Research modes use mode-specific evaluation forms", () => {
   assert.match(content, /const copy = getEvaluateCopy\(this\.getMode\(\)\)/);
 });
 
-test("Create mode prioritizes authorship compare before source verification", () => {
+test("visible sources prioritize verification before mode-specific Compare", () => {
   const content = readFileSync(path.join(root, "src/content/index.js"), "utf8");
-  assert.match(content, /const researchLike = mode === "research" \|\| \(mode !== "create" && Boolean\(sourcePresent\)\)/);
+  assert.match(content, /const verificationRelevant = mode === "research" \|\| Boolean\(sourcePresent\)/);
+  assert.match(content, /decisionReason: mode === "research" \? "research_mode" : "sources_visible"/);
+  assert.equal(content.includes("mode !== \"create\" && Boolean(sourcePresent)"), false);
 });
 
 test("measurement tab uses learner-friendly labels while keeping audit events visible", () => {
