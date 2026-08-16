@@ -178,6 +178,7 @@ test("School student guard requires attempt, blocks copying, and preserves priva
   assert.match(content, /1\. School rule/);
   assert.match(content, /2\. Assignment stage/);
   assert.match(content, /3\. Your own thinking/);
+  assert.equal(content.includes("Review rule"), false);
   assert.match(content, /const strictStudentMode = this\.isStrictStudentMode\(\)/);
   assert.match(content, /requireText: strictStudentMode/);
   assert.match(content, /secondary: strictStudentMode \? ""/);

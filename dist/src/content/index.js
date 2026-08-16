@@ -627,12 +627,10 @@
           <p>School mode says AI is not allowed here. ThinkFirst is blocking the chat so you do the work without AI.</p>
           <p class="tf-school-small">If this was a mistake, switch mode or reopen School Check and choose a different rule.</p>
           <div class="tf-school-actions">
-            <button type="button" data-school-check>Review rule</button>
             <button type="button" data-open-settings>Settings</button>
           </div>
         </div>
       `;
-      blocker.querySelector("[data-school-check]").addEventListener("click", () => this.showSchoolCheck(true));
       blocker.querySelector("[data-open-settings]").addEventListener("click", () => this.openSettings());
       document.body.append(blocker);
     }
