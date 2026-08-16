@@ -175,6 +175,9 @@ test("School student guard requires attempt, blocks copying, and preserves priva
   assert.match(content, /this\.schoolGuard = snapshot\.schoolGuard \|\| null/);
   assert.match(content, /this\.isSchoolChatBlocked\(\)/);
   assert.match(content, /ChatGPT blocked for this task/);
+  assert.match(content, /1\. School rule/);
+  assert.match(content, /2\. Assignment stage/);
+  assert.match(content, /3\. Your own thinking/);
   assert.match(content, /const strictStudentMode = this\.isStrictStudentMode\(\)/);
   assert.match(content, /requireText: strictStudentMode/);
   assert.match(content, /secondary: strictStudentMode \? ""/);

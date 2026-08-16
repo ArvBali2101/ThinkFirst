@@ -415,6 +415,24 @@
   padding: 8px 10px;
 }
 
+.tf-section-heading {
+  margin-top: 14px;
+}
+
+.tf-section-heading h3 {
+  margin: 0;
+  color: #214e44;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.tf-section-heading p {
+  margin: 4px 0 0;
+  color: #667a72;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .tf-choice-list {
   display: grid;
   gap: 6px;

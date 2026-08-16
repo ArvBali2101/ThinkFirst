@@ -1149,6 +1149,7 @@
         body: "Document the process without storing your assignment text. This is for allowed use, source checks, and your own contribution.",
         customBody: () => {
           const fragment = document.createDocumentFragment();
+          fragment.append(buildSectionHeading("1. School rule", "Start here so ThinkFirst knows what AI is allowed to do for this task."));
           fragment.append(buildChoiceList([
             ["allowed", "AI is allowed"],
             ["limited", "AI is allowed with limits"],
@@ -1156,7 +1157,8 @@
             ["unknown", "I need to check the rule"]
           ], (value) => {
             aiUseRule = value;
-          }, "tf-school-rule", aiUseRule));
+          }, "tf-school-rule", aiUseRule, "", { allowNone: true }));
+          fragment.append(buildSectionHeading("2. Assignment stage", "This helps separate planning, drafting, checking, and revision."));
           fragment.append(buildChoiceList([
             ["planning", "Planning or understanding"],
             ["drafting", "Drafting or solving"],
@@ -1165,7 +1167,8 @@
             ["exam_prep", "Exam preparation"]
           ], (value) => {
             assignmentStage = value;
-          }, "tf-assignment-stage", assignmentStage));
+          }, "tf-assignment-stage", assignmentStage, "", { allowNone: true }));
+          fragment.append(buildSectionHeading("3. Your own thinking", "Use these prompts to separate your contribution from the AI output."));
           fragment.append(buildPromptExamples([
             "What part is my own thinking?",
             "What AI output needs source checking?",
@@ -1654,6 +1657,16 @@
       button.addEventListener("click", () => onSelect(value));
       wrap.append(button);
     }
+    return wrap;
+  }
+
+  function buildSectionHeading(title, body = "") {
+    const wrap = document.createElement("div");
+    wrap.className = "tf-section-heading";
+    wrap.innerHTML = `
+      <h3>${escapeHtml(title)}</h3>
+      ${body ? `<p>${escapeHtml(body)}</p>` : ""}
+    `;
     return wrap;
   }
 
