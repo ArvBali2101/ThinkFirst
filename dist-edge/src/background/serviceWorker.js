@@ -7,13 +7,16 @@ import {
   clearThinkFirstData,
   getProviderStatus,
   getExamGuard,
+  getSchoolGuard,
   getSettings,
   getState,
   setExamGuard,
+  setSchoolGuard,
   setProviderStatus,
   setSettings,
   setState,
   updateExamGuard,
+  updateSchoolGuard,
   updateSettings
 } from "../storage/localStore.js";
 
@@ -70,6 +73,16 @@ async function handleMessage(message, sender) {
       await setExamGuard({ active: false, endedAt: Date.now(), counters: {} });
       return { ok: true, examGuard: await getExamGuard() };
 
+    case "GET_SCHOOL_GUARD":
+      return { ok: true, schoolGuard: await getSchoolGuard() };
+
+    case "ACTIVATE_SCHOOL_GUARD":
+      return activateSchoolGuard(message.detail || {}, sender);
+
+    case "CLEAR_SCHOOL_GUARD":
+      await setSchoolGuard({ active: false, endedAt: Date.now() });
+      return { ok: true, schoolGuard: await getSchoolGuard() };
+
     case "PROVIDER_STATUS":
       await setProviderStatus({
         provider: message.provider || "chatgpt",
@@ -111,11 +124,12 @@ async function handleMessage(message, sender) {
 }
 
 async function snapshot() {
-  const [settings, state, providerStatus, examGuard] = await Promise.all([
+  const [settings, state, providerStatus, examGuard, schoolGuard] = await Promise.all([
     getSettings(),
     getState(),
     getProviderStatus(),
-    getExamGuard()
+    getExamGuard(),
+    getSchoolGuard()
   ]);
   return {
     ok: true,
@@ -123,6 +137,7 @@ async function snapshot() {
     state,
     providerStatus,
     examGuard,
+    schoolGuard,
     metrics: calculateMetrics(state.stats),
     dailySeries: calculateDailySeries(state.daily),
     adaptiveLevel: getAdaptiveLevel(state.sessions, settings),
@@ -146,6 +161,21 @@ async function activateExamGuard(detail = {}, sender) {
     counters: current.counters || {}
   }));
   return { ok: true, examGuard };
+}
+
+async function activateSchoolGuard(detail = {}, sender) {
+  const settings = await getSettings();
+  if (settings.mode !== "school") return { ok: true, skipped: true };
+  const host = safeHostname(sender?.url) || detail.host;
+  const now = Date.now();
+  const schoolGuard = await updateSchoolGuard((current) => ({
+    active: true,
+    sourceHost: host,
+    startedAt: current.active ? current.startedAt : now,
+    expiresAt: now + 12 * 60 * 60_000,
+    policy: detail.policy || current.policy || "not_allowed"
+  }));
+  return { ok: true, schoolGuard };
 }
 
 function safeHostname(url) {

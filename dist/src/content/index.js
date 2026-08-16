@@ -2,6 +2,7 @@
   const PROVIDER = "chatgpt";
   const STORAGE_SETTINGS = "tf_settings";
   const STORAGE_EXAM_GUARD = "tf_exam_guard";
+  const STORAGE_SCHOOL_GUARD = "tf_school_guard";
   const DEFAULT_SETTINGS = {
     mode: "quick",
     attemptEnabled: true,
@@ -256,6 +257,7 @@
     constructor() {
       this.settings = { ...DEFAULT_SETTINGS };
       this.examGuard = null;
+      this.schoolGuard = null;
       this.adapter = new ChatGPTAdapter(this);
       this.sessionId = null;
       this.promptCount = 0;
@@ -307,7 +309,9 @@
       });
       this.adapter.observeFollowupSubmit(() => this.record("followup_message_detected"));
       this.installExamChatGuard();
+      this.installSchoolChatGuard();
       this.updateExamWarning();
+      this.updateSchoolWarning();
       this.installInteractionTracker();
       this.installNavigationWatcher();
       this.installSessionStartPrompt();
@@ -322,6 +326,10 @@
           this.examGuard = changes[STORAGE_EXAM_GUARD].newValue || null;
           this.updateExamWarning();
         }
+        if (area === "local" && changes[STORAGE_SCHOOL_GUARD]) {
+          this.schoolGuard = changes[STORAGE_SCHOOL_GUARD].newValue || null;
+          this.updateSchoolWarning();
+        }
       });
     }
 
@@ -329,6 +337,7 @@
       const snapshot = await this.message({ type: "GET_SNAPSHOT" });
       this.settings = { ...DEFAULT_SETTINGS, ...(snapshot.settings || {}) };
       this.examGuard = snapshot.examGuard || null;
+      this.schoolGuard = snapshot.schoolGuard || null;
     }
 
     isLearningActive() {
@@ -342,6 +351,12 @@
 
     async handleUserSubmit({ event, perform }) {
       this.refreshConversationState();
+      if (this.isSchoolChatBlocked()) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        this.showSchoolBlocker();
+        return;
+      }
       if (this.isExamModeActive() && this.looksLikeExamPrompt(this.adapter.getPromptText())) {
         event.preventDefault();
         event.stopImmediatePropagation();
@@ -400,6 +415,10 @@
     async handlePromptIntent() {
       this.refreshConversationState();
       if (this.isExamModeActive()) this.updateExamWarning();
+      if (this.isSchoolChatBlocked()) {
+        this.showSchoolBlocker();
+        return;
+      }
       if (!this.isLearningActive()) return;
       if (Date.now() < this.integrityPauseUntil) {
         this.showIntegrityPause();
@@ -485,11 +504,45 @@
       }, true);
     }
 
+    installSchoolChatGuard() {
+      const isPromptTarget = (target) => {
+        const prompt = this.adapter.findPromptRoot();
+        return Boolean(prompt && target && (prompt === target || prompt.contains(target)));
+      };
+      const block = (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        this.showSchoolBlocker();
+      };
+      document.addEventListener("paste", (event) => {
+        if (!this.isSchoolChatBlocked() || !isPromptTarget(event.target)) return;
+        block(event);
+      }, true);
+      document.addEventListener("beforeinput", (event) => {
+        if (!this.isSchoolChatBlocked() || !isPromptTarget(event.target)) return;
+        const pasted = event.inputType === "insertFromPaste";
+        const longInsert = String(event.data || "").length > 0;
+        if (pasted || longInsert) block(event);
+      }, true);
+      document.addEventListener("keydown", (event) => {
+        if (!this.isSchoolChatBlocked() || !isPromptTarget(event.target)) return;
+        if (event.key === "Enter" || event.key.length === 1) block(event);
+      }, true);
+    }
+
     isExamModeActive() {
       return Boolean(
         this.settings.examGuardEnabled !== false &&
         this.examGuard?.active &&
         (!this.examGuard.expiresAt || this.examGuard.expiresAt > Date.now())
+      );
+    }
+
+    isSchoolChatBlocked() {
+      return Boolean(
+        this.getMode() === "school" &&
+        this.schoolGuard?.active &&
+        (!this.schoolGuard.expiresAt || this.schoolGuard.expiresAt > Date.now())
       );
     }
 
@@ -524,6 +577,17 @@
       document.body.append(warning);
     }
 
+    updateSchoolWarning() {
+      document.querySelector("#tf-school-chat-warning")?.remove();
+      if (!this.isSchoolChatBlocked()) return;
+      const warning = document.createElement("div");
+      warning.id = "tf-school-chat-warning";
+      warning.className = "tf-exam-chat-warning tf-school-chat-warning";
+      warning.textContent = "School Mode: AI is not allowed for this task, so ChatGPT is blocked until you change the rule or mode.";
+      document.body.append(warning);
+      this.showSchoolBlocker();
+    }
+
     showExamToast(message) {
       document.querySelector("#tf-exam-chat-toast")?.remove();
       const toast = document.createElement("div");
@@ -549,6 +613,28 @@
         onPrimary: ({ close }) => close()
       });
       this.adapter.injectIntervention(modal);
+    }
+
+    showSchoolBlocker() {
+      document.querySelector("#tf-school-chat-blocker")?.remove();
+      if (!this.isSchoolChatBlocked()) return;
+      const blocker = document.createElement("div");
+      blocker.id = "tf-school-chat-blocker";
+      blocker.className = "tf-school-chat-blocker";
+      blocker.innerHTML = `
+        <div>
+          <strong>ChatGPT blocked for this task</strong>
+          <p>School mode says AI is not allowed here. ThinkFirst is blocking the chat so you do the work without AI.</p>
+          <p class="tf-school-small">If this was a mistake, switch mode or reopen School Check and choose a different rule.</p>
+          <div class="tf-school-actions">
+            <button type="button" data-school-check>Review rule</button>
+            <button type="button" data-open-settings>Settings</button>
+          </div>
+        </div>
+      `;
+      blocker.querySelector("[data-school-check]").addEventListener("click", () => this.showSchoolCheck(true));
+      blocker.querySelector("[data-open-settings]").addEventListener("click", () => this.openSettings());
+      document.body.append(blocker);
     }
 
     async handleAssistantCopy(detail, event) {
@@ -930,6 +1016,9 @@
           }
           if (mode === "school") {
             await this.record("school_context_set", { schoolTaskType, aiUseRule });
+            if (aiUseRule === "not_allowed") {
+              await this.message({ type: "ACTIVATE_SCHOOL_GUARD", detail: { policy: aiUseRule } });
+            }
           }
           await this.record("attempt_completed", { readiness: readiness || "not_selected", unfamiliar: readiness === "no_idea" && unfamiliar ? unfamiliar : undefined });
           close();
@@ -1090,6 +1179,9 @@
         feedbackType: "school",
         onPrimary: async ({ close }) => {
           await this.record("school_integrity_check_completed", { aiUseRule, assignmentStage });
+          if (aiUseRule === "not_allowed") {
+            await this.message({ type: "ACTIVATE_SCHOOL_GUARD", detail: { policy: aiUseRule } });
+          }
           if (options.unlockOnComplete) await this.clearIntegrityPause("school_check_completed");
           close();
         },
@@ -1324,6 +1416,7 @@
     installSessionStartPrompt() {
       const tryShow = () => {
         this.refreshConversationState();
+        if (this.isSchoolChatBlocked()) return true;
         if (this.sessionStartPromptOffered || this.attemptShown || this.attemptPromptOpen || this.learningGoalPromptOpen) return true;
         if (!this.isLearningActive() || !this.adapter.findPromptRoot()) return false;
         if (this.adapter.findLatestUserMessage() || this.adapter.findLatestAssistant()) return true;
@@ -1449,6 +1542,10 @@
       return new Promise((resolve) => {
         chrome.runtime.sendMessage(payload, (response) => resolve(response || { ok: false }));
       });
+    }
+
+    openSettings() {
+      this.message({ type: "OPEN_SETTINGS" });
     }
   }
 

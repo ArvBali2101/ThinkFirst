@@ -34,6 +34,10 @@
   top: 14px;
 }
 
+.tf-school-chat-warning {
+  max-width: min(760px, calc(100vw - 32px));
+}
+
 .tf-exam-chat-toast {
   top: 62px;
   border-radius: 10px;
@@ -73,6 +77,59 @@
   background: #fbfaf7;
   box-shadow: 0 28px 80px rgba(31, 35, 40, 0.22);
   padding: 18px;
+}
+
+.tf-school-chat-blocker {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 23, 26, 0.7);
+  backdrop-filter: blur(8px);
+}
+
+.tf-school-chat-blocker > div {
+  width: min(560px, 100%);
+  border: 1px solid #ddd7cb;
+  border-radius: 18px;
+  background: #fbfaf7;
+  box-shadow: 0 28px 80px rgba(31, 35, 40, 0.24);
+  padding: 24px;
+  color: #214e44;
+}
+
+.tf-school-chat-blocker strong {
+  display: block;
+  margin-bottom: 8px;
+  font: 700 28px/1.15 Georgia, "Times New Roman", serif;
+}
+
+.tf-school-chat-blocker p {
+  margin: 8px 0 0;
+  line-height: 1.5;
+  color: #51616b;
+}
+
+.tf-school-small {
+  font-size: 13px;
+}
+
+.tf-school-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.tf-school-actions button {
+  border: 1px solid #214e44;
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: #fbfaf7;
+  color: #214e44;
+  font: 700 13px/1.35 "DM Sans", Inter, system-ui, sans-serif;
 }
 
 .tf-sidepanel__head {

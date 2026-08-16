@@ -162,12 +162,19 @@ test("School student guard requires attempt, blocks copying, and preserves priva
   const constants = readFileSync(path.join(root, "src/shared/constants.js"), "utf8");
   const settingsHtml = readFileSync(path.join(root, "src/settings/settings.html"), "utf8");
   const settingsJs = readFileSync(path.join(root, "src/settings/Settings.js"), "utf8");
+  const serviceWorker = readFileSync(path.join(root, "src/background/serviceWorker.js"), "utf8");
   const content = readFileSync(path.join(root, "src/content/index.js"), "utf8");
   assert.match(constants, /schoolCopyBlocker: true/);
+  assert.match(constants, /schoolGuard: "tf_school_guard"/);
   assert.match(settingsHtml, /School copy blocker/);
   assert.match(settingsJs, /schoolCopyBlocker/);
+  assert.match(serviceWorker, /ACTIVATE_SCHOOL_GUARD/);
+  assert.match(serviceWorker, /GET_SCHOOL_GUARD/);
   assert.match(content, /isStrictStudentMode\(\)/);
   assert.match(content, /this\.settings\.attemptEnabled && !this\.attemptShown && \(this\.isStrictStudentMode\(\) \|\| this\.canAutoIntervene\(\)\)/);
+  assert.match(content, /this\.schoolGuard = snapshot\.schoolGuard \|\| null/);
+  assert.match(content, /this\.isSchoolChatBlocked\(\)/);
+  assert.match(content, /ChatGPT blocked for this task/);
   assert.match(content, /const strictStudentMode = this\.isStrictStudentMode\(\)/);
   assert.match(content, /requireText: strictStudentMode/);
   assert.match(content, /secondary: strictStudentMode \? ""/);
@@ -179,6 +186,7 @@ test("School student guard requires attempt, blocks copying, and preserves priva
   assert.match(content, /\["small", "medium", "large"\]\.includes\(detail\.copiedRangeClass\)/);
   assert.match(content, /10 \* 60_000/);
   assert.match(content, /pauseSeconds: 600/);
+  assert.match(content, /ACTIVATE_SCHOOL_GUARD/);
   assert.equal(content.includes("clipboardText"), false);
   assert.equal(content.includes("ThinkFirst is not judging intent or calling this cheating."), true);
 });

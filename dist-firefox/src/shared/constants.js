@@ -2,7 +2,8 @@ export const STORAGE_KEYS = {
   settings: "tf_settings",
   state: "tf_state",
   providerStatus: "tf_provider_status",
-  examGuard: "tf_exam_guard"
+  examGuard: "tf_exam_guard",
+  schoolGuard: "tf_school_guard"
 };
 
 export const PROVIDERS = {
