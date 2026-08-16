@@ -8,6 +8,10 @@ Core loop: Generate. Evaluate. Verify. Reflect.
 
 See `FINAL_DOCUMENTATION.md` for the complete project handoff: product scope, installation, browser compatibility, QA/stress-test results, privacy model, known limitations, and roadmap.
 
+## Extreme Manual Testing
+
+Use `EXTREME_TEST_GUIDE.md` when you or student testers need a step-by-step test script: install/reload steps, exact prompts, how long to wait, expected ThinkFirst modals, dashboard checks, settings checks, privacy checks, and pass/fail criteria.
+
 ## What ThinkFirst Is
 
 ThinkFirst helps students pause before relying on AI by adding skippable prompts for an initial attempt, comparison, source verification, and reflection. The MVP supports ChatGPT only.
