@@ -42,7 +42,7 @@ ThinkFirst has five main modes:
 | Learn | Understand something | Attempt First before AI, then Compare after AI if no sources, Verify if sources are present. |
 | Research | Factual investigation | Attempt First, then Verify after the AI answer. Source checking is prioritized. |
 | Create | Writing, design, brainstorming | Attempt First, then authorship/voice Compare if no sources. If sources appear, Verify comes first. |
-| School | Assignment/exam process | School-specific Attempt First, source Verify if sources appear, otherwise School Check after answer. |
+| School | Assignment/exam process | Required typed Attempt First with no skip path, source Verify if sources appear, otherwise School Check after answer. Assistant-answer copying is blocked when the School copy blocker is on. |
 
 ThinkFirst is testing the GEVR loop:
 
@@ -149,6 +149,7 @@ This is the most important part.
 | Open a fresh ChatGPT page in Learn/Research/Create/School | 1 to 3 seconds | Attempt First should appear automatically. It starts trying around 0.9 seconds and retries for about 21 seconds. |
 | Type in ChatGPT composer in active mode | 1 to 2 seconds | Attempt First may appear before you send. |
 | Click ChatGPT send while Attempt First is enabled | Immediate | ChatGPT send should pause and Attempt First should appear. |
+| School/Commitment first attempt | Immediate | ChatGPT cannot be used until a typed Attempt First is completed. The skip button should not appear. |
 | After you complete Attempt First and AI responds | Wait until answer finishes, then 1 to 3 seconds | Compare, Verify, or School Check should appear depending on mode/source. |
 | If AI answer has visible links/sources | 1 to 3 seconds after answer finishes | Verify should appear first in Learn, Research, Create, and School. |
 | Later automatic prompts in same session | At least 3 minutes and at least 3 more exchanges | A later checkpoint/retrieval prompt can appear. |
@@ -642,19 +643,19 @@ Expected:
 
 | Check | Expected |
 |---|---|
-| Clipboard | The risky copy should be blocked before it is copied. |
+| Clipboard | The copy should be blocked before it is copied. |
 | Modal | `Assignment integrity pause` appears. |
 | Timer | Countdown starts at 10:00. |
 | Language | It should not say the student cheated. It should say this is an assignment-risk moment. |
 | Early unlock | Clicking `Do school check` opens School Check. Completing it unlocks the pause. |
+| ChatGPT sending | While the pause is active, sending another ChatGPT message should be blocked and the pause should reappear. |
 | Dashboard Today | `Integrity pauses` increases. |
 | Privacy Inspector | Shows `assistant_copy_detected` and `school_integrity_pause_started`, but no copied text. |
 
 Important:
 
-- Small copying should not necessarily trigger the blocker.
-- Large copying should trigger it.
-- Fast medium/large copying should trigger it.
+- In School Mode or Commitment Mode, any assistant-answer copy attempt should trigger the blocker while `School copy blocker` is on.
+- Copying outside the assistant answer should not count as assistant-answer copying.
 - The blocker is active only in School Mode or Commitment Mode.
 
 Fail if:
@@ -662,7 +663,7 @@ Fail if:
 - The copied text appears in local data.
 - The blocker appears in Quick Mode.
 - It accuses the user of cheating.
-- It blocks tiny selections such as one term or a short citation fragment.
+- It allows assistant-answer copying in School/Commitment while the blocker is on.
 
 ### Test SRC01: Source Click Detection
 
@@ -696,7 +697,7 @@ Run each setting test in a fresh ChatGPT chat after changing the setting.
 | SET08 | Cooldown 3 min | Same session, multiple exchanges | Later auto prompt should not appear until 3 minutes and 3 exchanges pass, unless bypassed on first response. |
 | SET09 | Dyslexia-friendly On | Refresh ChatGPT | ThinkFirst UI should use dyslexia-friendly presentation. No layout break. |
 | SET10 | Clear all data | Settings or Dashboard Privacy | Dashboard counters and pilot survey should clear. |
-| SET11 | School copy blocker Off | School mode, copy a large assistant answer | Copy detection may still be counted, but the 10-minute integrity blocker should not appear. |
+| SET11 | School copy blocker Off | School mode, copy an assistant answer | Copy detection may still be counted, but the 10-minute integrity blocker should not appear. |
 
 ## 10. Dashboard Test Guide
 
@@ -721,7 +722,7 @@ Check:
 | Generated first | Attempt completed / attempt opportunity. |
 | Retrieved afterwards | Reflection/retrieval completions. |
 | Verification exercises | Completed Verify workflows. |
-| Integrity pauses | School/Commitment risky-copy blockers started today. |
+| Integrity pauses | School/Commitment copy blockers started today. |
 
 ### Habits Tab
 
@@ -917,7 +918,7 @@ The build is acceptable for tester release if all of these pass:
 | Research | Verify appears after answer. |
 | Create | No-source answer uses authorship Compare, not research Compare. |
 | School | School Attempt First is divided clearly; no-source answer shows School Check. |
-| School copy blocker | Large or fast medium/large AI-answer copying in School/Commitment Mode starts a 10-minute Assignment Integrity Pause, without accusing cheating or storing copied text. |
+| School copy blocker | Assistant-answer copying in School/Commitment Mode starts a 10-minute Assignment Integrity Pause, blocks ChatGPT sending during the pause, and stores no copied text. |
 | Dashboard | Today, Habits, Measurement, Privacy tabs update logically. |
 | Privacy | No prompt, answer, source URL, attempt, reflection, or clipboard text stored. |
 | Data deletion | Delete all clears behavior data and pilot survey. |

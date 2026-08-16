@@ -9,6 +9,7 @@
     verifyEnabled: true,
     reflectEnabled: true,
     commitmentMode: false,
+    schoolCopyBlocker: true,
     automaticInterventionBudget: 3,
     cooldownMinutes: 5,
     cooldownExchanges: 3,
@@ -326,6 +327,13 @@
       if (!this.isLearningActive()) return;
       this.ensureSession();
 
+      if (Date.now() < this.integrityPauseUntil) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        this.showIntegrityPause();
+        return;
+      }
+
       if (this.promptCount > 0 && this.assistantCompleted) {
         this.onFollowup?.();
       }
@@ -342,7 +350,7 @@
         return;
       }
 
-      if (this.settings.attemptEnabled && !this.attemptShown && this.canAutoIntervene()) {
+      if (this.settings.attemptEnabled && !this.attemptShown && (this.isStrictStudentMode() || this.canAutoIntervene())) {
         event.preventDefault();
         event.stopImmediatePropagation();
         this.attemptShown = true;
@@ -367,7 +375,12 @@
     async handlePromptIntent() {
       this.refreshConversationState();
       if (!this.isLearningActive()) return;
-      if (!this.settings.attemptEnabled || this.attemptShown || this.attemptPromptOpen || this.learningGoalPromptOpen || !this.canAutoIntervene()) return;
+      if (Date.now() < this.integrityPauseUntil) {
+        this.showIntegrityPause();
+        return;
+      }
+      if (!this.settings.attemptEnabled || this.attemptShown || this.attemptPromptOpen || this.learningGoalPromptOpen) return;
+      if (!this.isStrictStudentMode() && !this.canAutoIntervene()) return;
       this.ensureSession();
       this.attemptShown = true;
       this.fallbackAttemptShown = true;
@@ -435,10 +448,13 @@
 
     shouldStartIntegrityPause(detail = {}) {
       if (!this.isLearningActive() || this.settings.schoolCopyBlocker === false) return false;
-      if (!(this.getMode() === "school" || this.settings.commitmentMode)) return false;
+      if (!this.isStrictStudentMode()) return false;
       if (Date.now() < this.integrityPauseUntil) return true;
-      const quickCopy = Number(detail.secondsAfterResponse || 999) <= 20;
-      return detail.copiedRangeClass === "large" || (quickCopy && detail.copiedRangeClass === "medium");
+      return ["small", "medium", "large"].includes(detail.copiedRangeClass);
+    }
+
+    isStrictStudentMode() {
+      return this.getMode() === "school" || Boolean(this.settings.commitmentMode);
     }
 
     async startIntegrityPause(detail = {}) {
@@ -476,7 +492,7 @@
             <div class="tf-logo-mark" aria-hidden="true"></div>
             <h2>Assignment integrity pause</h2>
           </div>
-          <p class="tf-card__body">ThinkFirst blocked this copy because copying a large or very quick AI answer in School/Commitment Mode is an assignment-risk moment.</p>
+          <p class="tf-card__body">ThinkFirst blocked this copy because assistant-answer copying is locked in School/Commitment Mode.</p>
           <div class="tf-lock-box">
             <strong data-countdown>10:00</strong>
             <span>Pause, check the rule, and decide what must be rewritten, cited, or verified.</span>
@@ -485,6 +501,7 @@
             <li>ThinkFirst is not judging intent or calling this cheating.</li>
             <li>No copied text or clipboard content is read or stored.</li>
             <li>Complete a School Check to unlock early, or wait 10 minutes.</li>
+            <li>While the pause is active, ChatGPT sending is blocked too.</li>
           </ul>
           <div class="tf-actions">
             <button class="tf-secondary" type="button" data-school-check>Do school check</button>
@@ -709,6 +726,7 @@
     showAttemptFirst(perform, { submitAfter = typeof perform === "function" } = {}) {
       this.attemptPromptOpen = true;
       const mode = this.getMode();
+      const strictStudentMode = this.isStrictStudentMode();
       const copy = getAttemptCopy(mode);
       let readiness = "";
       let unfamiliar = "";
@@ -782,10 +800,10 @@
         },
         textareaLabel: "My attempt",
         textareaPlaceholder: copy.placeholder,
-        requireText: false,
+        requireText: strictStudentMode,
         footer: "Your attempt is not saved.",
         primary: submitAfter ? "Continue to AI" : "Done - I'll ask AI",
-        secondary: this.settings.commitmentMode ? "" : submitAfter ? "Send without attempt" : "Skip for this question",
+        secondary: strictStudentMode ? "" : submitAfter ? "Send without attempt" : "Skip for this question",
         why: "You're in a learning-style session and this is the first question. ThinkFirst is offering one independent start before AI assistance.",
         feedbackType: "attempt",
         onPrimary: async ({ close }) => {

@@ -158,7 +158,7 @@ test("measurement tab uses learner-friendly labels while keeping audit events vi
   assert.match(dashboard, /formatMeasurementValue/);
 });
 
-test("School copy blocker is scoped, timed, and privacy-preserving", () => {
+test("School student guard requires attempt, blocks copying, and preserves privacy", () => {
   const constants = readFileSync(path.join(root, "src/shared/constants.js"), "utf8");
   const settingsHtml = readFileSync(path.join(root, "src/settings/settings.html"), "utf8");
   const settingsJs = readFileSync(path.join(root, "src/settings/Settings.js"), "utf8");
@@ -166,10 +166,17 @@ test("School copy blocker is scoped, timed, and privacy-preserving", () => {
   assert.match(constants, /schoolCopyBlocker: true/);
   assert.match(settingsHtml, /School copy blocker/);
   assert.match(settingsJs, /schoolCopyBlocker/);
+  assert.match(content, /isStrictStudentMode\(\)/);
+  assert.match(content, /this\.settings\.attemptEnabled && !this\.attemptShown && \(this\.isStrictStudentMode\(\) \|\| this\.canAutoIntervene\(\)\)/);
+  assert.match(content, /const strictStudentMode = this\.isStrictStudentMode\(\)/);
+  assert.match(content, /requireText: strictStudentMode/);
+  assert.match(content, /secondary: strictStudentMode \? ""/);
   assert.match(content, /handleAssistantCopy\(detail, event\)/);
   assert.match(content, /event\?\.preventDefault\?\.\(\)/);
   assert.match(content, /const shouldBlock = this\.shouldStartIntegrityPause\(detail\)[\s\S]*?event\?\.preventDefault\?\.\(\)[\s\S]*?await this\.record\("assistant_copy_detected", detail\)/);
-  assert.match(content, /this\.getMode\(\) === "school" \|\| this\.settings\.commitmentMode/);
+  assert.match(content, /this\.getMode\(\) === "school" \|\| Boolean\(this\.settings\.commitmentMode\)/);
+  assert.match(content, /Date\.now\(\) < this\.integrityPauseUntil[\s\S]*?event\.preventDefault\(\)/);
+  assert.match(content, /\["small", "medium", "large"\]\.includes\(detail\.copiedRangeClass\)/);
   assert.match(content, /10 \* 60_000/);
   assert.match(content, /pauseSeconds: 600/);
   assert.equal(content.includes("clipboardText"), false);
