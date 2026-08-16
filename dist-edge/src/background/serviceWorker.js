@@ -173,7 +173,8 @@ async function activateSchoolGuard(detail = {}, sender) {
     sourceHost: host,
     startedAt: current.active ? current.startedAt : now,
     expiresAt: now + 12 * 60 * 60_000,
-    policy: detail.policy || current.policy || "not_allowed"
+    policy: detail.policy || current.policy || "not_allowed",
+    scopeId: detail.scopeId || current.scopeId || null
   }));
   return { ok: true, schoolGuard };
 }
