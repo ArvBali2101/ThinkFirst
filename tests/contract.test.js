@@ -173,7 +173,6 @@ test("School student guard requires attempt, blocks copying, and preserves priva
   assert.match(content, /isStrictStudentMode\(\)/);
   assert.match(content, /this\.settings\.attemptEnabled && !this\.attemptShown && \(this\.isStrictStudentMode\(\) \|\| this\.canAutoIntervene\(\)\)/);
   assert.match(content, /this\.schoolGuard = snapshot\.schoolGuard \|\| null/);
-  assert.match(content, /this\.schoolScopeId = this\.getSchoolScopeId\(\)/);
   assert.match(content, /this\.isSchoolChatBlocked\(\)/);
   assert.match(content, /ChatGPT blocked for this task/);
   assert.match(content, /1\. School rule/);
@@ -192,7 +191,7 @@ test("School student guard requires attempt, blocks copying, and preserves priva
   assert.match(content, /10 \* 60_000/);
   assert.match(content, /pauseSeconds: 600/);
   assert.match(content, /ACTIVATE_SCHOOL_GUARD/);
-  assert.match(content, /scopeId: this\.schoolScopeId/);
+  assert.match(content, /scopeId: this\.sessionId/);
   assert.equal(content.includes("clipboardText"), false);
   assert.equal(content.includes("ThinkFirst is not judging intent or calling this cheating."), true);
 });

@@ -3,7 +3,6 @@
   const STORAGE_SETTINGS = "tf_settings";
   const STORAGE_EXAM_GUARD = "tf_exam_guard";
   const STORAGE_SCHOOL_GUARD = "tf_school_guard";
-  const SCHOOL_SCOPE_KEY = "tf_school_scope_id";
   const DEFAULT_SETTINGS = {
     mode: "quick",
     attemptEnabled: true,
@@ -259,7 +258,6 @@
       this.settings = { ...DEFAULT_SETTINGS };
       this.examGuard = null;
       this.schoolGuard = null;
-      this.schoolScopeId = this.getSchoolScopeId();
       this.adapter = new ChatGPTAdapter(this);
       this.sessionId = null;
       this.promptCount = 0;
@@ -340,7 +338,6 @@
       this.settings = { ...DEFAULT_SETTINGS, ...(snapshot.settings || {}) };
       this.examGuard = snapshot.examGuard || null;
       this.schoolGuard = snapshot.schoolGuard || null;
-      this.schoolScopeId = this.getSchoolScopeId();
     }
 
     isLearningActive() {
@@ -545,7 +542,7 @@
       return Boolean(
         this.getMode() === "school" &&
         this.schoolGuard?.active &&
-        this.schoolGuard?.scopeId === this.schoolScopeId &&
+        this.schoolGuard?.scopeId === this.sessionId &&
         (!this.schoolGuard.expiresAt || this.schoolGuard.expiresAt > Date.now())
       );
     }
@@ -1020,7 +1017,7 @@
           if (mode === "school") {
             await this.record("school_context_set", { schoolTaskType, aiUseRule });
             if (aiUseRule === "not_allowed") {
-              await this.message({ type: "ACTIVATE_SCHOOL_GUARD", detail: { policy: aiUseRule, scopeId: this.schoolScopeId } });
+              await this.message({ type: "ACTIVATE_SCHOOL_GUARD", detail: { policy: aiUseRule, scopeId: this.sessionId } });
             }
           }
           await this.record("attempt_completed", { readiness: readiness || "not_selected", unfamiliar: readiness === "no_idea" && unfamiliar ? unfamiliar : undefined });
@@ -1186,7 +1183,7 @@
         onPrimary: async ({ close }) => {
           await this.record("school_integrity_check_completed", { aiUseRule, assignmentStage });
           if (aiUseRule === "not_allowed") {
-            await this.message({ type: "ACTIVATE_SCHOOL_GUARD", detail: { policy: aiUseRule, scopeId: this.schoolScopeId } });
+            await this.message({ type: "ACTIVATE_SCHOOL_GUARD", detail: { policy: aiUseRule, scopeId: this.sessionId } });
           }
           if (options.unlockOnComplete) await this.clearIntegrityPause("school_check_completed");
           close();
@@ -1552,14 +1549,6 @@
 
     openSettings() {
       this.message({ type: "OPEN_SETTINGS" });
-    }
-
-    getSchoolScopeId() {
-      const existing = globalThis.sessionStorage?.getItem(SCHOOL_SCOPE_KEY);
-      if (existing) return existing;
-      const generated = globalThis.crypto?.randomUUID?.() || uuid();
-      globalThis.sessionStorage?.setItem(SCHOOL_SCOPE_KEY, generated);
-      return generated;
     }
   }
 
