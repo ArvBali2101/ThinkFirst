@@ -57,7 +57,8 @@ function renderToday() {
     ["Learning sessions", row.learningSessions || 0],
     ["Generated first", `${row.attemptCompleted || 0}/${row.attemptEligible || 0}`],
     ["Retrieved afterwards", row.retrievalCompleted || row.reflectionCompleted || 0],
-    ["Verification exercises", row.verificationCompleted || 0]
+    ["Verification exercises", row.verificationCompleted || 0],
+    ["Integrity pauses", row.schoolIntegrityPauses || 0]
   ];
   document.querySelector("#todayGrid").innerHTML = items.map(([label, value]) => `
     <article class="card">

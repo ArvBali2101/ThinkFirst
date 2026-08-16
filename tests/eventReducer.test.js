@@ -105,3 +105,26 @@ test("school mode records process checks as categories only", () => {
   assert.equal("promptText" in state.events.at(-2), false);
   assert.equal("reflectionText" in state.events.at(-1), false);
 });
+
+test("school integrity pauses are counted without copied content", () => {
+  let state = createEmptyState();
+  state = reduceEvent(state, event("session_started", { eventId: "started", mode: "school" }));
+  state = reduceEvent(state, event("school_integrity_pause_started", {
+    eventId: "pause",
+    mode: "school",
+    copiedRangeClass: "large",
+    secondsAfterResponse: 4,
+    pauseSeconds: 600,
+    clipboardText: "should be dropped"
+  }));
+  state = reduceEvent(state, event("school_integrity_pause_cleared", {
+    eventId: "clear",
+    mode: "school",
+    reason: "school_check_completed"
+  }));
+
+  assert.equal(state.stats.schoolIntegrityPauses, 1);
+  assert.equal(state.sessions[0].schoolIntegrityPauseStarted, true);
+  assert.equal(state.sessions[0].schoolIntegrityPauseClearReason, "school_check_completed");
+  assert.equal("clipboardText" in state.events.at(-2), false);
+});

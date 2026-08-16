@@ -247,6 +247,23 @@ function applyEvent(state, event) {
       }
       break;
 
+    case "school_integrity_pause_started":
+      if (session) {
+        session.schoolIntegrityPauseStarted = true;
+        session.schoolIntegrityPauseCount = (session.schoolIntegrityPauseCount || 0) + 1;
+        session.lastIntegrityPauseReason = event.copiedRangeClass || "copy";
+        increment(state.stats, "schoolIntegrityPauses");
+        increment(day, "schoolIntegrityPauses");
+      }
+      break;
+
+    case "school_integrity_pause_cleared":
+      if (session) {
+        session.schoolIntegrityPauseCleared = true;
+        session.schoolIntegrityPauseClearReason = event.reason;
+      }
+      break;
+
     case "followup_message_detected":
       if (session && !session.followupDetected) {
         session.followupDetected = true;

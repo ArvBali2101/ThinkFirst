@@ -6,6 +6,7 @@ const fields = [
   "verifyEnabled",
   "reflectEnabled",
   "commitmentMode",
+  "schoolCopyBlocker",
   "intensity",
   "verificationLevel",
   "promptComplexity",
@@ -35,6 +36,7 @@ function render() {
   document.querySelector("#verifyEnabled").checked = settings.verifyEnabled;
   document.querySelector("#reflectEnabled").checked = settings.reflectEnabled;
   document.querySelector("#commitmentMode").checked = settings.commitmentMode;
+  document.querySelector("#schoolCopyBlocker").checked = settings.schoolCopyBlocker !== false;
   document.querySelector("#intensity").value = settings.intensity;
   document.querySelector("#verificationLevel").value = settings.verificationLevel;
   document.querySelector("#promptComplexity").value = settings.promptComplexity;
@@ -54,6 +56,7 @@ async function save() {
     verifyEnabled: document.querySelector("#verifyEnabled").checked,
     reflectEnabled: document.querySelector("#reflectEnabled").checked,
     commitmentMode: document.querySelector("#commitmentMode").checked,
+    schoolCopyBlocker: document.querySelector("#schoolCopyBlocker").checked,
     intensity: document.querySelector("#intensity").value,
     verificationLevel: document.querySelector("#verificationLevel").value,
     promptComplexity: document.querySelector("#promptComplexity").value,

@@ -39,6 +39,7 @@ AI should make knowledge more accessible, not make our own thinking optional. Th
 - Local dashboard for observable AI-use habits, grouped by generation, evaluation, verification, reflection, and reliance patterns.
 - Measurement tab explaining each metric's numerator, denominator, trigger, privacy boundary, and limitation.
 - School / Assignment Mode with AI-use rule, assignment-stage, source-check, and authorship-process prompts.
+- School copy blocker with a 10-minute Assignment Integrity Pause for risky AI-answer copying in School or Commitment Mode.
 - Actionable local insights.
 - Privacy panel with real storage counters.
 - Privacy inspector event timeline.

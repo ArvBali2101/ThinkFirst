@@ -74,6 +74,9 @@ export function generateInsights(stats = {}, sessions = []) {
   if ((stats.schoolSessions || 0) > 0 && metrics.schoolProcessCheckRate < 50) {
     insights.push("School Mode is active, but process checks are low. Use School Check to mark allowed AI use, assignment stage, and what remains your own work.");
   }
+  if ((stats.schoolIntegrityPauses || 0) > 0) {
+    insights.push("ThinkFirst blocked at least one risky schoolwork copy. This is not a cheating accusation; it is a cue to check the assignment rule, cite sources, and rewrite in your own words.");
+  }
   if (metrics.firstResponseStoppingRate > 60 && metrics.followupExploration < 35) {
     insights.push("Many sessions stop at the first answer. For learning or high-stakes work, one follow-up can reveal assumptions, missing evidence, or a better explanation.");
   }

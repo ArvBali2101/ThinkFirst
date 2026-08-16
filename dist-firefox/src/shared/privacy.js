@@ -28,6 +28,8 @@ export function sanitizeEventForStorage(event) {
     crossCheckCompleted: event.crossCheckCompleted,
     copiedRangeClass: event.copiedRangeClass,
     secondsAfterResponse: event.secondsAfterResponse,
+    pauseSeconds: event.pauseSeconds,
+    reason: event.reason,
     decisionPoint: event.decisionPoint,
     offeredIntervention: event.offeredIntervention,
     decisionReason: event.decisionReason,

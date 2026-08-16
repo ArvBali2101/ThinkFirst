@@ -212,6 +212,29 @@
   line-height: 1.45;
 }
 
+.tf-lock-box {
+  display: grid;
+  gap: 6px;
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid #d4b56c;
+  border-radius: 10px;
+  background: #fff0bf;
+  color: #214e44;
+}
+
+.tf-lock-box strong {
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.tf-lock-box span {
+  color: #51616b;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .tf-example-list {
   display: grid;
   gap: 6px;

@@ -141,7 +141,7 @@
     }
 
     observeAssistantCopy(callback) {
-      const handler = () => {
+      const handler = (event) => {
         const assistant = this.findLatestAssistant();
         if (!assistant || !this.lastAssistantCompleteAt) return;
         const selection = document.getSelection();
@@ -152,7 +152,7 @@
         callback({
           copiedRangeClass: copiedLength > 1200 ? "large" : copiedLength > 250 ? "medium" : "small",
           secondsAfterResponse: Math.round((Date.now() - this.lastAssistantCompleteAt) / 1000)
-        });
+        }, event);
       };
       document.addEventListener("copy", handler, true);
       this.cleanups.push(() => document.removeEventListener("copy", handler, true));
@@ -273,6 +273,8 @@
       this.learningGoalPromptOpen = false;
       this.sessionStartPromptOffered = false;
       this.retrieveSuggested = false;
+      this.integrityPauseUntil = 0;
+      this.integrityPauseTimer = null;
     }
 
     async start() {
@@ -286,7 +288,7 @@
       this.adapter.observePromptIntent(() => this.handlePromptIntent());
       this.adapter.observeAssistantStart((detail) => this.handleAssistantStart(detail));
       this.adapter.observeAssistantComplete((detail) => this.handleAssistantComplete(detail));
-      this.adapter.observeAssistantCopy((detail) => this.record("assistant_copy_detected", detail));
+      this.adapter.observeAssistantCopy((detail, event) => this.handleAssistantCopy(detail, event));
       this.adapter.observeSourceClick(() => {
         this.responseInteracted = true;
         this.record("source_clicked");
@@ -419,6 +421,106 @@
         this.markAutoIntervention();
         setTimeout(() => this.openAutomaticIntervention(decision), 1200);
       }
+    }
+
+    async handleAssistantCopy(detail, event) {
+      const shouldBlock = this.shouldStartIntegrityPause(detail);
+      if (shouldBlock) {
+        event?.preventDefault?.();
+        event?.stopImmediatePropagation?.();
+      }
+      await this.record("assistant_copy_detected", detail);
+      if (shouldBlock) await this.startIntegrityPause(detail);
+    }
+
+    shouldStartIntegrityPause(detail = {}) {
+      if (!this.isLearningActive() || this.settings.schoolCopyBlocker === false) return false;
+      if (!(this.getMode() === "school" || this.settings.commitmentMode)) return false;
+      if (Date.now() < this.integrityPauseUntil) return true;
+      const quickCopy = Number(detail.secondsAfterResponse || 999) <= 20;
+      return detail.copiedRangeClass === "large" || (quickCopy && detail.copiedRangeClass === "medium");
+    }
+
+    async startIntegrityPause(detail = {}) {
+      if (Date.now() >= this.integrityPauseUntil) {
+        this.integrityPauseUntil = Date.now() + 10 * 60_000;
+        await this.record("school_integrity_pause_started", {
+          copiedRangeClass: detail.copiedRangeClass,
+          secondsAfterResponse: detail.secondsAfterResponse,
+          pauseSeconds: 600
+        });
+      }
+      this.showIntegrityPause(detail);
+    }
+
+    async clearIntegrityPause(reason = "completed") {
+      this.integrityPauseUntil = 0;
+      if (this.integrityPauseTimer) clearInterval(this.integrityPauseTimer);
+      this.integrityPauseTimer = null;
+      document.querySelector("#tf-integrity-pause")?.remove();
+      await this.record("school_integrity_pause_cleared", { reason });
+    }
+
+    showIntegrityPause(detail = {}) {
+      document.querySelector("#tf-integrity-pause")?.remove();
+      if (this.integrityPauseTimer) clearInterval(this.integrityPauseTimer);
+
+      const overlay = document.createElement("div");
+      overlay.id = "tf-integrity-pause";
+      overlay.className = "tf-overlay tf-integrity-pause";
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.innerHTML = `
+        <div class="tf-card">
+          <div class="tf-card__head">
+            <div class="tf-logo-mark" aria-hidden="true"></div>
+            <h2>Assignment integrity pause</h2>
+          </div>
+          <p class="tf-card__body">ThinkFirst blocked this copy because copying a large or very quick AI answer in School/Commitment Mode is an assignment-risk moment.</p>
+          <div class="tf-lock-box">
+            <strong data-countdown>10:00</strong>
+            <span>Pause, check the rule, and decide what must be rewritten, cited, or verified.</span>
+          </div>
+          <ul class="tf-example-list">
+            <li>ThinkFirst is not judging intent or calling this cheating.</li>
+            <li>No copied text or clipboard content is read or stored.</li>
+            <li>Complete a School Check to unlock early, or wait 10 minutes.</li>
+          </ul>
+          <div class="tf-actions">
+            <button class="tf-secondary" type="button" data-school-check>Do school check</button>
+            <button class="tf-primary" type="button" data-continue disabled>Continue after pause</button>
+          </div>
+        </div>
+      `;
+      const countdown = overlay.querySelector("[data-countdown]");
+      const continueButton = overlay.querySelector("[data-continue]");
+      const updateCountdown = () => {
+        const remaining = Math.max(0, this.integrityPauseUntil - Date.now());
+        const totalSeconds = Math.ceil(remaining / 1000);
+        const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+        const seconds = String(totalSeconds % 60).padStart(2, "0");
+        countdown.textContent = `${minutes}:${seconds}`;
+        if (remaining <= 0) {
+          continueButton.disabled = false;
+          continueButton.textContent = "Continue";
+          clearInterval(this.integrityPauseTimer);
+          this.integrityPauseTimer = null;
+        }
+      };
+      overlay.querySelector("[data-school-check]").addEventListener("click", () => {
+        overlay.remove();
+        this.showSchoolCheck(true, "copy_integrity_pause", {
+          unlockOnComplete: true,
+          onSkip: () => this.showIntegrityPause(detail)
+        });
+      });
+      continueButton.addEventListener("click", () => {
+        if (Date.now() < this.integrityPauseUntil) return;
+        this.clearIntegrityPause("timer_completed");
+      });
+      updateCountdown();
+      this.integrityPauseTimer = setInterval(updateCountdown, 1000);
+      this.adapter.injectIntervention(overlay);
     }
 
     choosePostResponseIntervention({ sourcePresent = false } = {}) {
@@ -815,7 +917,7 @@
       this.adapter.injectIntervention(modal);
     }
 
-    async showSchoolCheck(manual = true, reason = "school_process_check") {
+    async showSchoolCheck(manual = true, reason = "school_process_check", options = {}) {
       if (this.schoolCheckShown && !manual) return;
       this.schoolCheckShown = true;
       let aiUseRule = "unknown";
@@ -855,12 +957,14 @@
         feedbackType: "school",
         onPrimary: async ({ close }) => {
           await this.record("school_integrity_check_completed", { aiUseRule, assignmentStage });
+          if (options.unlockOnComplete) await this.clearIntegrityPause("school_check_completed");
           close();
         },
         onSecondary: async ({ close }) => {
           await this.record("school_integrity_check_skipped");
           this.noteSkip();
           close();
+          options.onSkip?.();
         }
       });
       this.adapter.injectIntervention(modal);
